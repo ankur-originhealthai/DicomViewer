@@ -1,0 +1,28 @@
+{
+  "name": "nuxt-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@cornerstonejs/core": "^3.28.0",
+    "@cornerstonejs/dicom-image-loader": "^3.19.5",
+    "@cornerstonejs/tools": "^3.19.5",
+    "@tailwindcss/vite": "^4.1.11",
+    "dicom-parser": "^1.8.21",
+    "nuxt": "^3.17.6",
+    "tailwindcss": "^4.1.11",
+    "vue": "^3.5.17",
+    "vue-router": "^4.5.1"
+  },
+  "devDependencies": {
+    "@iconify-json/mdi": "^1.2.3",
+    "@iconify-json/si": "^1.2.3",
+    "@nuxt/icon": "^1.13.0"
+  }
+}
