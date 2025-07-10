@@ -1,6 +1,11 @@
+<script setup lang="ts">
+import DicomViewer from './components/DicomViewer.vue';
+
+</script>
+
 <template>
-  <div>
-    <HomePage />
-  </div>
+  <ClientOnly>
+    <DicomViewer />
+  </ClientOnly>
   
 </template>

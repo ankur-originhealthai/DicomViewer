@@ -24,9 +24,6 @@ import {
     annotation,
     LabelTool,
 } from "@cornerstonejs/tools";
-import * as cornerstoneDICOMImageLoader from '@cornerstonejs/dicom-image-loader';
-import dicomParser from 'dicom-parser';
-import { init as dicomLoaderInit } from "@cornerstonejs/dicom-image-loader";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
 
 
@@ -34,7 +31,7 @@ import { useLabelTool } from '~/customs/useLabelTool'
 import { useMagnifier } from '~/customs/useMagnifier'
 import ViewportOverlay from '~/components/ViewportOverlay.vue'
 import LabelInputOverlay from '~/components/LabelInputOverlay.vue'
-import { captureDicom } from "~/components/CaptureDicom.vue";
+import { captureDicom } from "../components/CaptureDicom.vue";
 import { wadouri } from "@cornerstonejs/dicom-image-loader";
 
 // Constants
@@ -51,6 +48,7 @@ const speed = ref(1);
 const playIntervalRef = ref<NodeJS.Timeout | null>(null);
 const cornerstoneElement = ref<any>(null);
 const zoomFactor = ref(2);
+const bookmarklabel = ref(false);
 const bookmarkarray = ref<number[]>([]);
 const toolusedonframe = ref<string[]>([]);
 
@@ -89,41 +87,27 @@ const handleFlip = (type: string) => {
     });
     viewport.render();
 };
-
-
-
-onMounted(async () => {
-    cornerstoneDICOMImageLoader.wadouri.fileManager.add(currentFile.value as File)
-    //cornerstoneDICOMImageLoader.external.dicomParser = dicomParser;
-    var config = {
-        maxWebWorkers: navigator.hardwareConcurrency || 1,
-        startWebWorkersOnDemand: true,
-        // Add other configurations as needed, e.g., for codecs or decoders
-        // webWorkerPath: '/path/to/web-worker.js',
-        // codecsPath: '/path/to/codecs.js',
-    };
-    //cornerstoneDICOMImageLoader.webWorkerManager.initialize(config);
+initCornerstoneDICOMImageLoader()
+onBeforeMount(async () => {
 
     await cornerstoneCoreInit();
 
     await cornerstoneToolsInit();
 
-
-    //await dicomLoaderInit();
-
+    
     const element = document.getElementById("cornerstoneDiv");
     cornerstoneElement.value = (element);
-
-
-
-
+    
+    
+        
+    
 })
 
 // Watch for file changes
 watch(currentFile, async () => {
     try {
-
-
+        
+        
 
         metaData.addProvider(
             (type, imageId) => hardcodedMetaDataProvider(type, imageId, imageId),
@@ -145,11 +129,11 @@ watch(currentFile, async () => {
 
         const baseImageId = wadouri.fileManager.add(currentFile.value);
         console.log(baseImageId)
-        console.log("not loaded yet")
+         console.log("not loaded yet")
 
         const imageData = await imageLoader.loadImage(baseImageId);
         console.log("Image loaded successfully:", imageData);
-
+           
         const metadata = metaData.get("multiframeModule", baseImageId);
         const numberOfFrames = metadata?.NumberOfFrames || 1;
         frameCount.value = numberOfFrames;
@@ -405,26 +389,26 @@ watch(frameIndex, () => {
 });
 
 const toggleAnnotations = () => {
-    const ann = annotation.state.getAllAnnotations();
-    const val = hideAnnotation.value
-    const viewport = renderingEngineRef.value?.getViewport(
+  const ann = annotation.state.getAllAnnotations();
+  const val = hideAnnotation.value
+  const viewport = renderingEngineRef.value?.getViewport(
         viewportId
     ) as StackViewport;
-    console.log(val)
-    if (val == true) {
-        annotation.visibility.showAllAnnotations();
-
+  console.log(val)
+  if(val == true){
+      annotation.visibility.showAllAnnotations();
+      
     }
-    else {
-        ann.map((a) => {
-            if (a.annotationUID) {
-                annotation.visibility.setAnnotationVisibility(a.annotationUID, val);
-
-            }
-        });
+  else{
+    ann.map((a) => {
+    if (a.annotationUID) {
+      annotation.visibility.setAnnotationVisibility(a.annotationUID, val);
+    
     }
-    viewport.render()
-    hideAnnotation.value = !val;
+  });
+  }
+  viewport.render()
+  hideAnnotation.value = !val;
 };
 const getBookmarkLeft = (bookmarkedIndex: number, total: number) => {
     if (bookmarkedIndex == null || total <= 1) return '0px';
@@ -476,9 +460,9 @@ const toolList = [
             <button @click="redo" class="tool-btn">Redo</button>
             <button @click="clear" class="tool-btn">Clear</button>
             <button @click="toggleAnnotations" class="bg-blue-500 text-white px-3 py-1 rounded">
-                {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
-            </button>
-            <button @click="captureDicom(elementRef, frameIndex)" class="tool-btn">Capture</button>
+  {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
+</button>
+            <button @click="captureDicom(elementRef , frameIndex)" class="tool-btn">Capture</button>
         </div>
 
         <div class="relative w-full h-full bg-black border-r border-gray-800">
@@ -532,20 +516,19 @@ const toolList = [
             <div class="flex items-center gap-2">
                 <button v-for="{ name, onClick, label } in playbackButtons" :key="label" @click="onClick"
                     :disabled="frameCount <= 1" class="tool-btn w-10 h-10 flex items-center justify-center">
-                    <Icon :name="name" />
+                    <Icon :name="name"  />
                 </button>
             </div>
 
             <select @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
-                class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24"
-                default="1">
+                class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24" default="1">
                 <option value="0.5">0.5x</option>
                 <option value="1" selected>1x</option>
                 <option value="1.5">1.5x</option>
                 <option value="2">2x</option>
-
+                
             </select>
         </div>
     </div>
-
+    
 </template>

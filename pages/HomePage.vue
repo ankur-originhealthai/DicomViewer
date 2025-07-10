@@ -1,4 +1,4 @@
 <template>
-    <NuxtLink to="/DicomViewer">Dicom</NuxtLink>
-    
+    <NuxtPage />
+   <Temp />
 </template>

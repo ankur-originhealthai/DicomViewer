@@ -10,11 +10,13 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@cornerstonejs/core": "^3.28.0",
+    "@cornerstonejs/core": "^3.19.5",
     "@cornerstonejs/dicom-image-loader": "^3.19.5",
     "@cornerstonejs/tools": "^3.19.5",
+    "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@tailwindcss/vite": "^4.1.11",
     "dicom-parser": "^1.8.21",
+    "dicomweb-client": "^0.11.2",
     "nuxt": "^3.17.6",
     "tailwindcss": "^4.1.11",
     "vue": "^3.5.17",
