@@ -204,7 +204,7 @@ const {
     prevToolRef,
     onLabelCancel,
 } = useLabelTool(
-    cornerstoneElement,
+    elementRef,
     renderingEngineRef,
     viewportId,
     toolGroupId,
@@ -435,91 +435,145 @@ const toolList = [
 </script>
 
 <template>
-    <div
-        class="w-screen h-screen bg-black text-white grid grid-cols-[1fr_250px] grid-rows-[auto_1fr_auto] gap-0 font-sans overflow-hidden">
-        <!-- Toolbar (Top Row, Full Width) -->
-        <div
-            class="col-span-2 flex flex-wrap items-center justify-center gap-2 p-3 border-b border-gray-700 bg-neutral-900">
-            <button v-for="Tool in toolList" :key="Tool.toolName" @click="handleToolChange(Tool.toolName)"
-                class="tool-btn">
-                {{ Tool.toolName }}
-            </button>
-            <button @click="handleFlip('VFlip')" class="tool-btn">V Flip</button>
-            <button @click="handleFlip('HFlip')" class="tool-btn">H Flip</button>
-            <button @click="undo" class="tool-btn">Undo</button>
-            <button @click="redo" class="tool-btn">Redo</button>
-            <button @click="clear" class="tool-btn">Clear</button>
-            <button @click="toggleAnnotations" class="bg-blue-500 text-white px-3 py-1 rounded">
-                {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
-            </button>
-            <button @click="captureDicom(elementRef, frameIndex)" class="tool-btn">Capture</button>
-        </div>
-
-        <div class="relative w-full h-full bg-black border-r border-gray-800">
-            <div ref="elementRef" id="cornerstoneDiv" class="w-full h-full" />
-            <ViewportOverlay :elementRef="elementRef" :isMagnifyVisible="isMagnifyVisible" :zoomFactor="zoomFactor"
-                @update:zoomFactor="(val) => (zoomFactor = val)" />
-
-        </div>
-
-        <LabelInputOverlay :visible="labelInputVisible" :coords="labelInputCoords" :value="labelInputValue"
-            :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
-
-        <div class="h-full flex flex-col justify-between p-4 bg-neutral-900">
-            <div>
-                <h2 class="text-lg font-bold mb-3">Upload DICOM</h2>
-                <input type="file" accept=".dcm" @change="handleFileChange"
-                    class="mb-6 text-white bg-gray-800 px-3 py-2 rounded w-full" />
-            </div>
-            <div>
-                <h2 class="text-lg font-bold mb-3">Measurements</h2>
-                <button @click="() => console.log(annotation.state.getAllAnnotations())"
-                    class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
-                    Get Measurements
-                </button>
-            </div>
-        </div>
-
-        <div class="col-span-2 bg-neutral-900 border-t border-gray-700 px-6 py-3">
-            <input type="range" :min="0" :max="frameCount > 1 ? frameCount - 1 : 0"
-                :value="frameCount > 1 ? frameIndex : 0"
-                @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))"
-                :disabled="frameCount <= 1" class="w-full h-2 rounded bg-gray-700 cursor-pointer appearance-none" />
-
-
-            <div v-if="isBookmarked" class="relative w-full -mt-3 -mb-1">
-                <div v-for="(b, i) in bookmarkarray" :key="i" @click="handleFrameChange(b)"
-                    class="absolute px-1 mx-1 w-1 h-3 bg-yellow-300 rounded-full border-2 border-yellow-600 shadow-md cursor-pointer hover:scale-110 transition-transform duration-150"
-                    :style="{ left: `${(b / (frameCount - 1)) * 100}%`, top: '-4px', transform: 'translateX(-50%)' }"
-                    :title="`Go to frame ${b + 1}`" />
-            </div>
-        </div>
-        <div class="flex justify-between items-center gap-4 my-2">
-
-            <div class="text-sm text-gray-400 w-24 text-left">
-                {{ frameCount > 1
-                    ? `${String(Math.floor(frameIndex / 30)).padStart(2, '0')}:${String(frameIndex % 30).padStart(2, '0')}`
-                    : '00:00'
-                }}
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button v-for="{ name, onClick, label } in playbackButtons" :key="label" @click="onClick"
-                    :disabled="frameCount <= 1" class="tool-btn w-10 h-10 flex items-center justify-center">
-                    <Icon :name="name" />
-                </button>
-            </div>
-
-            <select @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
-                class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24"
-                default="1">
-                <option value="0.5">0.5x</option>
-                <option value="1" selected>1x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2">2x</option>
-
-            </select>
-        </div>
+  <div class="w-screen h-screen bg-black text-white grid grid-cols-[1fr_280px] grid-rows-[auto_1fr_auto] font-sans overflow-hidden">
+    <div class="col-span-2 flex items-center justify-between px-6 py-2 bg-neutral-900 border-b border-gray-700 text-xs">
+      <div>Patient ID: <span class="text-gray-300">OM-XXXXX</span></div>
+      <div>LMP: <span class="text-gray-300">04/01/2025</span></div>
+      <div>GA: <span class="text-gray-300">12w2d</span></div>
+      <div>EDD: <span class="text-gray-300">04/09/2025</span></div>
+      <div>Exam Type: <span class="text-gray-300">NT SCAN</span></div>
+    </div>
+   
+    <div class="relative w-full h-full bg-black border-r border-gray-800">
+      <div ref="elementRef" id="cornerstoneDiv" class="w-full h-full" />
+      <ViewportOverlay
+        :elementRef="elementRef"
+        :isMagnifyVisible="isMagnifyVisible"
+        :zoomFactor="zoomFactor"
+        @update:zoomFactor="(val) => (zoomFactor = val)"
+      />
     </div>
 
+    <LabelInputOverlay :visible="labelInputVisible" :coords="labelInputCoords" :value="labelInputValue"
+            :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
+   
+    <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm">
+      
+      <button @click="toggleAnnotations"
+        class="w-full bg-blue-500 text-white text-sm py-2 rounded hover:bg-blue-600 transition">
+        {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
+      </button>
+      
+      <div>
+        <h3 class="font-semibold text-gray-300 mb-2">Tools</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <button
+            v-for="Tool in toolList"
+            :key="Tool.toolName"
+            @click="handleToolChange(Tool.toolName)"
+            class="tool-btn"
+          >
+            {{ Tool.toolName }}
+          </button>
+        </div>
+      </div>
+      <!-- Image Controls -->
+      <div>
+        <h3 class="font-semibold text-gray-300 mb-2">Image Controls</h3>
+        <div class="grid grid-cols-2 gap-2">
+          <button @click="handleFlip('VFlip')" class="tool-btn">V Flip</button>
+          <button @click="handleFlip('HFlip')" class="tool-btn">H Flip</button>
+          <button @click="undo" class="tool-btn">Undo</button>
+          <button @click="redo" class="tool-btn">Redo</button>
+          <button @click="clear" class="tool-btn col-span-2">Clear</button>
+        </div>
+      </div>
+      
+      <div>
+        <h3 class="font-semibold text-gray-300 mb-2">Snapshot</h3>
+        <button @click="captureDicom(elementRef, frameIndex)"
+          class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
+          Capture
+        </button>
+      </div>
+     
+      <div>
+        <h3 class="font-semibold text-gray-300 mb-2">Upload DICOM</h3>
+        <input
+          type="file"
+          accept=".dcm"
+          @change="handleFileChange"
+          class="text-white bg-gray-800 px-3 py-2 rounded w-full"
+        />
+      </div>
+      
+      <div>
+        <h3 class="font-semibold text-gray-300 mb-2">Measurements</h3>
+        <button
+          @click="() => console.log(annotation.state.getAllAnnotations())"
+          class="tool-btn w-full bg-blue-600 hover:bg-blue-500"
+        >
+          Get Measurements
+        </button>
+      </div>
+    </div>
+   
+    <div class="col-span-2 bg-neutral-900 border-t border-gray-700 px-6 py-3">
+     
+      <input
+        type="range"
+        :min="0"
+        :max="frameCount > 1 ? frameCount - 1 : 0"
+        :value="frameCount > 1 ? frameIndex : 0"
+        @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))"
+        :disabled="frameCount <= 1"
+        class="w-full h-2 rounded bg-gray-700 cursor-pointer appearance-none"
+      />
+     
+      <div v-if="isBookmarked" class="relative w-full -mt-3 -mb-1">
+        <div
+          v-for="(b, i) in bookmarkarray"
+          :key="i"
+          @click="handleFrameChange(b)"
+          class="absolute px-1 mx-1 w-1 h-3 bg-yellow-300 rounded-full border-2 border-yellow-600 shadow-md cursor-pointer hover:scale-110 transition-transform duration-150"
+          :style="{ left: `${(b / (frameCount - 1)) * 100}%`, top: '-4px', transform: 'translateX(-50%)' }"
+          :title="`Go to frame ${b + 1}`"
+        />
+      </div>
+     
+      <div class="flex justify-between items-center gap-4 mt-3">
+        <div class="text-sm text-gray-400 w-24 text-left">
+          {{ frameCount > 1
+            ? `${String(Math.floor(frameIndex / 30)).padStart(2, '0')}:${String(frameIndex % 30).padStart(2, '0')}`
+            : '00:00' }}
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            v-for="{ name, onClick, label } in playbackButtons"
+            :key="label"
+            @click="onClick"
+            :disabled="frameCount <= 1"
+            class="tool-btn w-10 h-10 flex items-center justify-center"
+          >
+            <Icon :name="name" />
+          </button>
+        </div>
+        <select
+          @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
+          class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24"
+        >
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+    </div>
+  </div>
 </template>
+
+
+
+
+
+

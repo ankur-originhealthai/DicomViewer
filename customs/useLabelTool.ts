@@ -24,6 +24,7 @@ export function useLabelTool(
   const prevToolRef = ref<string | null>(null);
 
   const handler = (event: MouseEvent) => {
+    console.log("called")
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
     const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
     if (!viewport || !toolGroup) return;
