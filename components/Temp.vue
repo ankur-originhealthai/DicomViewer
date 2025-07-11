@@ -1,51 +1,94 @@
-<script lang="ts" setup>
+<script lang="ts">
+import { onUnmounted, watchEffect } from 'vue';
+import type { Ref } from 'vue';
 import {
-  init as csCoreInit,
   RenderingEngine,
   Enums,
-  type StackViewport,
+  StackViewport,
 } from '@cornerstonejs/core';
 import {
-  init as dicomLoaderInit,
-  wadouri,
-} from '@cornerstonejs/dicom-image-loader';
-const elementRef = ref<HTMLDivElement | null>(null);
-const renderingEngineId = 'myRenderingEngine';
-const viewportId = 'CT_STACK';
-const renderingEngineRef = ref<RenderingEngine | null>(null);
-csCoreInit();
-dicomLoaderInit();
-const onFileChange = async (e: Event) => {
-  const input = e.target as HTMLInputElement;
-  if (!input.files?.length) return;
-  const file = input.files[0];
-  const imageId = wadouri.fileManager.add(file);
-  loadAndViewImage(imageId);
-};
-async function loadAndViewImage(imageId: string) {
-  const element = elementRef.value;
-  if (!element) return;
-  const renderingEngine = new RenderingEngine(renderingEngineId);
-  renderingEngineRef.value = renderingEngine;
-  renderingEngine.enableElement({
-    viewportId,
-    type: Enums.ViewportType.STACK,
-    element,
+  addTool,
+  ToolGroupManager,
+  Enums as csToolsEnums,
+  LengthTool,
+} from '@cornerstonejs/tools';
+export function useViewportMagnifier(
+  mainElementRef: Ref<HTMLElement | null>,
+  zoomElementRef: Ref<HTMLDivElement | null>,
+  renderingEngineRef: Ref<RenderingEngine | null>,
+  isMagnifyVisible: Ref<boolean>,
+  mainViewportId: string,
+  zoomViewportId = 'zoom-magnifier',
+  zoomFactor = 2
+) {
+  let mouseMoveHandler: ((e: MouseEvent) => void) | null = null;
+  watchEffect(async () => {
+    const renderingEngine = renderingEngineRef.value;
+    const mainElement = mainElementRef.value;
+    const zoomElement = zoomElementRef.value;
+    if (!isMagnifyVisible.value || !mainElement || !zoomElement || !renderingEngine) {
+      return;
+    }
+    const mainViewport = renderingEngine.getViewport(mainViewportId) as StackViewport;
+    const imageIds = mainViewport.getImageIds?.();
+    const currentImageIdIndex = mainViewport.getCurrentImageIdIndex?.();
+    if (!imageIds || imageIds.length === 0 || currentImageIdIndex === undefined) return;
+    // Enable zoom viewport
+    try {
+      renderingEngine.enableElement({
+        viewportId: zoomViewportId,
+        type: Enums.ViewportType.STACK,
+        element: zoomElement,
+      });
+    } catch {
+      // Already enabled
+    }
+    const zoomViewport = renderingEngine.getViewport(zoomViewportId) as StackViewport;
+    // Set same stack
+    await zoomViewport.setStack({ imageIds : imageIds, currentImageIdIndex:currentImageIdIndex });
+    // Sync camera
+    const mainCamera = mainViewport.getCamera();
+    zoomViewport.setCamera({
+      ...mainCamera,
+      parallelScale: mainCamera.parallelScale / zoomFactor,
+    });
+    // Setup tool group
+    const toolGroupId = 'zoomToolGroup';
+    let toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    if (!toolGroup) {
+      toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
+      toolGroup.addViewport(zoomViewportId, renderingEngine.id);
+      addTool(LengthTool);
+      toolGroup.addTool('Length', { configuration: {} });
+      toolGroup.setToolEnabled('Length');
+      toolGroup.setToolActive('Length', {
+        bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
+      });
+    }
+    renderingEngine.renderViewport(zoomViewportId);
+    // Track mouse
+    mouseMoveHandler = (e: MouseEvent) => {
+      const rect = mainElement.getBoundingClientRect();
+      const canvasX = e.clientX - rect.left;
+      const canvasY = e.clientY - rect.top;
+      const world = mainViewport.canvasToWorld([canvasX, canvasY]);
+      const currentCam = zoomViewport.getCamera();
+      zoomViewport.setCamera({ ...currentCam, focalPoint: world });
+      zoomViewport.render();
+    };
+    mainElement.addEventListener('mousemove', mouseMoveHandler);
   });
-  const viewport = renderingEngine.getViewport(viewportId) as StackViewport;
- viewport.setStack([imageId]);
-  viewport.render();
+  onUnmounted(() => {
+    if (mouseMoveHandler && mainElementRef.value) {
+      mainElementRef.value.removeEventListener('mousemove', mouseMoveHandler);
+    }
+  });
 }
+
+
+
+
+
+
+
 </script>
-<template>
-  <div class="w-screen h-screen">
-  <div class="w-full h-full">
-    <input type="file" @change="onFileChange" accept=".dcm" class="mb-2" />
-    <div ref="elementRef" class="w-full h-full" />
-  </div>
-  </div>
-</template>
-
-
-
-

@@ -7,6 +7,7 @@ import {
     metaData,
     StackViewport,
     init as cornerstoneCoreInit,
+    eventTarget
 } from "@cornerstonejs/core";
 
 import {
@@ -23,6 +24,7 @@ import {
     AngleTool,
     annotation,
     LabelTool,
+
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
 
@@ -33,6 +35,7 @@ import ViewportOverlay from '~/components/ViewportOverlay.vue'
 import LabelInputOverlay from '~/components/LabelInputOverlay.vue'
 import { captureDicom } from "./CaptureDicom.vue";
 import { init as dicomLoaderInit, wadouri } from "@cornerstonejs/dicom-image-loader";
+import { useLabelToolDrag } from "~/customs/useLabelToolDrag";
 
 // Constants
 const renderingEngineId = "myRenderingEngine";
@@ -62,7 +65,23 @@ const frameCount = ref(0);
 const frameIndex = ref(0);
 const isBookmarked = ref(false)
 const hideAnnotation = ref(false)
+
+const currentCustomLabel = ref<string | null>(null)
 // Handle file upload input
+
+const customToolMap: Record<string, { tool: string; label: string }> = {
+    NT: { tool: LengthTool.toolName, label: 'NT' },
+    CRL: { tool: LengthTool.toolName, label: 'CRL' },
+    TT: { tool: LengthTool.toolName, label: 'TT' },
+    FL: { tool: LengthTool.toolName, label: 'FL' },
+    CM: { tool: LengthTool.toolName, label: 'CM' },
+    BPD: { tool: EllipticalROITool.toolName, label: 'BPD' },
+    BS: { tool: EllipticalROITool.toolName, label: 'BS' },
+    CR: { tool: AngleTool.toolName, label: 'CR' },
+};
+
+
+
 
 function handleFileChange(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -118,16 +137,15 @@ watch(currentFile, async () => {
         const viewport = renderingEngine.getViewport(viewportId) as StackViewport;
 
         const baseImageId = wadouri.fileManager.add(currentFile.value);
-        console.log(baseImageId)
-        console.log("not loaded yet")
+
 
         const imageData = await imageLoader.loadImage(baseImageId);
-        console.log("Image loaded successfully:", imageData);
+        //console.log("Image loaded successfully:", imageData);
 
         const metadata = metaData.get("multiframeModule", baseImageId);
         const numberOfFrames = metadata?.NumberOfFrames || 1;
         frameCount.value = numberOfFrames;
-        console.log("no. of frames", frameCount.value)
+        //console.log("no. of frames", frameCount.value)
 
         if (numberOfFrames > 1) {
             const imageIds = numberOfFrames > 1
@@ -282,6 +300,12 @@ const handleToolChange = (selectedToolName: string) => {
         AngleTool.toolName,
         LabelTool.toolName,
     ];
+
+    if (selectedToolName == "CRL") {
+        toolGroup.setToolActive("LengthTool", {
+            bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
+        });
+    }
     allTools.forEach((toolName) => {
         if (toolName === selectedToolName) {
             toolGroup.setToolActive(toolName, {
@@ -296,284 +320,330 @@ const handleToolChange = (selectedToolName: string) => {
     viewport?.render();
 };
 
-const trackNewAnnotations = () => {
-    const annotations = annotation.state.getAllAnnotations();
-    annotations.forEach((a) => {
-        undostack.push({
-            uid: a.annotationUID,
-            annotations: a,
-        });
-    });
-};
-
-const playbackButtons = [
-    { name: "mdi:skip-backward", onClick: () => handleFrameChange(frameIndex.value - 1), label: 'Previous Frame' },
-    { name: "mdi:play", onClick: handlePlay, label: 'Play' },
-    { name: "mdi:pause", onClick: handlePause, label: 'Pause' },
-    { name: "mdi:skip-forward", onClick: () => handleFrameChange(frameIndex.value + 1), label: 'Next Frame' },
-];
-
-const undo = () => {
-    trackNewAnnotations();
-    if (undostack.length === 0) return;
-    const last = undostack.pop();
-    annotation.state.removeAnnotation(last.uid);
-    redostack.push({
-        uid: last.uid,
-        ann: last.annotations,
-    });
-    const viewport = renderingEngineRef.value?.getViewport(
-        viewportId
-    ) as StackViewport;
-    viewport.render();
-};
-
-const redo = () => {
-    if (redostack.length === 0) return;
-    const lastRedo = redostack.pop();
-    annotation.state.addAnnotation(lastRedo.ann, annotationGroupId);
-    undostack.push({
-        uid: lastRedo.ann.annotationUID,
-        annotation: lastRedo.ann,
-    });
-    const viewport = renderingEngineRef.value?.getViewport(
-        viewportId
-    ) as StackViewport;
-    viewport.render();
-};
-
-const clear = () => {
-    annotation.state.removeAllAnnotations();
-    bookmarkarray.value = ([]);
-    const viewport = renderingEngineRef.value?.getViewport(
-        viewportId
-    ) as StackViewport;
-    viewport.render();
-};
 
 
-const bookmark = (frameNumber: number) => {
-    console.log("called ")
-    const bookmarkedIndex = frameNumber - 1;
-    console.log(bookmarkedIndex)
-    if (!bookmarkarray.value.includes(bookmarkedIndex)) {
-        bookmarkarray.value = [...bookmarkarray.value, bookmarkedIndex];
-    }
-    isBookmarked.value = true;
-
-    console.log(isBookmarked.value)
-
-};
-
-watch(frameIndex, () => {
-    const ann = annotation.state.getAllAnnotations();
-    ann.forEach((elem: any) => {
-        const imageId = elem.metadata?.referencedImageId;
-        const frameMatch = imageId?.match(/frame=(\d+)/);
-        if (frameMatch) {
-            const frameNumber = parseInt(frameMatch[1]);
-            //console.log(frameNumber)
-            if (frameNumber) bookmark(frameNumber);
+const handleToolChange2 = (selectedToolName: string) => {
+    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    if (!toolGroup) return;
+    const customTool = customToolMap[selectedToolName];
+    prevToolRef.value = customTool ? customTool.tool : selectedToolName;
+    console.log(prevToolRef.value)
+    const actualToolName = customTool ? customTool.tool : selectedToolName;
+    currentCustomLabel.value = customTool ? customTool.label : null
+    const allTools = [
+        PanTool.toolName,
+        ZoomTool.toolName,
+        WindowLevelTool.toolName,
+        LengthTool.toolName,
+        RectangleROITool.toolName,
+        EllipticalROITool.toolName,
+        AngleTool.toolName,
+        LabelTool.toolName,
+    ];
+    allTools.forEach((toolName) => {
+        if (toolName === actualToolName) {
+            toolGroup.setToolActive(toolName, {
+                bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
+            });
+        } else {
+            toolGroup.setToolPassive(toolName);
         }
     });
-});
-
-const toggleAnnotations = () => {
-    const ann = annotation.state.getAllAnnotations();
-    const val = hideAnnotation.value
-    const viewport = renderingEngineRef.value?.getViewport(
-        viewportId
-    ) as StackViewport;
-    console.log(val)
-    if (val == true) {
-        annotation.visibility.showAllAnnotations();
-
+    // Handle magnifier toggle
+    isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(actualToolName);
+    prevToolRef.value = actualToolName;
+    if (!toolusedonframe.value.includes(actualToolName)) {
+        toolusedonframe.value.push(actualToolName);
     }
-    else {
-        ann.map((a) => {
-            if (a.annotationUID) {
-                annotation.visibility.setAnnotationVisibility(a.annotationUID, val);
+    const viewport = renderingEngineRef.value?.getViewport(viewportId);
+    viewport?.render();
 
+    
+}
+const {prevTool} = useLabelToolDrag(
+    elementRef,
+    renderingEngineRef,
+    viewportId,
+    toolGroupId,
+    isMagnifyVisible, 
+    prevToolRef.value
+
+)
+prevToolRef.value = prevTool
+    const trackNewAnnotations = () => {
+        const annotations = annotation.state.getAllAnnotations();
+        annotations.forEach((a) => {
+            undostack.push({
+                uid: a.annotationUID,
+                annotations: a,
+            });
+        });
+    };
+
+    const playbackButtons = [
+        { name: "mdi:skip-backward", onClick: () => handleFrameChange(frameIndex.value - 1), label: 'Previous Frame' },
+        { name: "mdi:play", onClick: handlePlay, label: 'Play' },
+        { name: "mdi:pause", onClick: handlePause, label: 'Pause' },
+        { name: "mdi:skip-forward", onClick: () => handleFrameChange(frameIndex.value + 1), label: 'Next Frame' },
+    ];
+
+    const undo = () => {
+        trackNewAnnotations();
+        if (undostack.length === 0) return;
+        const last = undostack.pop();
+        annotation.state.removeAnnotation(last.uid);
+        redostack.push({
+            uid: last.uid,
+            ann: last.annotations,
+        });
+        const viewport = renderingEngineRef.value?.getViewport(
+            viewportId
+        ) as StackViewport;
+        viewport.render();
+    };
+
+    const redo = () => {
+        if (redostack.length === 0) return;
+        const lastRedo = redostack.pop();
+        annotation.state.addAnnotation(lastRedo.ann, annotationGroupId);
+        undostack.push({
+            uid: lastRedo.ann.annotationUID,
+            annotation: lastRedo.ann,
+        });
+        const viewport = renderingEngineRef.value?.getViewport(
+            viewportId
+        ) as StackViewport;
+        viewport.render();
+    };
+
+    const clear = () => {
+        annotation.state.removeAllAnnotations();
+        bookmarkarray.value = ([]);
+        const viewport = renderingEngineRef.value?.getViewport(
+            viewportId
+        ) as StackViewport;
+        viewport.render();
+    };
+
+
+    const bookmark = (frameNumber: number) => {
+        //console.log("called ")
+        const bookmarkedIndex = frameNumber - 1;
+        console.log(bookmarkedIndex)
+        if (!bookmarkarray.value.includes(bookmarkedIndex)) {
+            bookmarkarray.value = [...bookmarkarray.value, bookmarkedIndex];
+        }
+        isBookmarked.value = true;
+
+        console.log(isBookmarked.value)
+
+    };
+
+    watch(frameIndex, () => {
+        const ann = annotation.state.getAllAnnotations();
+        ann.forEach((elem: any) => {
+            const imageId = elem.metadata?.referencedImageId;
+            const frameMatch = imageId?.match(/frame=(\d+)/);
+            if (frameMatch) {
+                const frameNumber = parseInt(frameMatch[1]);
+                //console.log(frameNumber)
+                if (frameNumber) bookmark(frameNumber);
             }
         });
-    }
-    viewport.render()
-    hideAnnotation.value = !val;
-};
-const getBookmarkLeft = (bookmarkedIndex: number, total: number) => {
-    if (bookmarkedIndex == null || total <= 1) return '0px';
-    const sliderIndex = bookmarkedIndex;
-    const percent = sliderIndex / (total - 1);
-    const pixelValue = 19 + percent * 850;
-    console.log(`pixel value ${pixelValue} for frame ${sliderIndex}`);
-    return `${pixelValue - 5}px`;
-};
+    });
 
-const handleFrameChange = (index: number) => {
-    const viewport = renderingEngineRef.value?.getViewport(
-        viewportId
-    ) as StackViewport;
-    if (index >= 0 && index < frameCount.value) {
-        viewport.setImageIdIndex(index);
-        viewport.render();
-        frameIndex.value = (index);
-    }
-};
+    const toggleAnnotations = () => {
+        const ann = annotation.state.getAllAnnotations();
+        const val = hideAnnotation.value
+        const viewport = renderingEngineRef.value?.getViewport(
+            viewportId
+        ) as StackViewport;
+        console.log(val)
+        if (val == true) {
+            annotation.visibility.showAllAnnotations();
+
+        }
+        else {
+            ann.map((a) => {
+                if (a.annotationUID) {
+                    annotation.visibility.setAnnotationVisibility(a.annotationUID, val);
+
+                }
+            });
+        }
+        viewport.render()
+        hideAnnotation.value = !val;
+    };
+    const getBookmarkLeft = (bookmarkedIndex: number, total: number) => {
+        if (bookmarkedIndex == null || total <= 1) return '0px';
+        const sliderIndex = bookmarkedIndex;
+        const percent = sliderIndex / (total - 1);
+        const pixelValue = 19 + percent * 850;
+        console.log(`pixel value ${pixelValue} for frame ${sliderIndex}`);
+        return `${pixelValue - 5}px`;
+    };
+
+    const handleFrameChange = (index: number) => {
+        const viewport = renderingEngineRef.value?.getViewport(
+            viewportId
+        ) as StackViewport;
+        if (index >= 0 && index < frameCount.value) {
+            viewport.setImageIdIndex(index);
+            viewport.render();
+            frameIndex.value = (index);
+        }
+    };
 
 
-const toolList = [
-    PanTool,
-    ZoomTool,
-    WindowLevelTool,
-    LengthTool,
-    RectangleROITool,
-    EllipticalROITool,
-    AngleTool,
-];
+    const toolList = [
+        PanTool,
+        ZoomTool,
+        WindowLevelTool,
+        LengthTool,
+        RectangleROITool,
+        EllipticalROITool,
+        AngleTool,
+
+    ];
+
+// import { useViewportMagnifier } from '../components/Temp.vue';
+// //const renderingEngineRef = ref<RenderingEngine | null>(null);
+// const mainElement = ref<HTMLElement | null>(null);
+// const zoomElement = ref<HTMLElement | null>(null);
+// //const isMagnifyVisible = ref(true); // toggle magnifier on/off
+// const mainViewportId = 'myViewport';
+// // Create rendering engine and load your images as usual...
+// // Then call:
+// useViewportMagnifier(
+//   elementRef,
+//   zoomElement,
+//   renderingEngineRef,
+//   isMagnifyVisible,
+//   mainViewportId,
+//   "zoomViewportId",
+//   zoomFactor
+// );
 
 
 </script>
 
 <template>
-  <div class="w-screen h-screen bg-black text-white grid grid-cols-[1fr_280px] grid-rows-[auto_1fr_auto] font-sans overflow-hidden">
-    <div class="col-span-2 flex items-center justify-between px-6 py-2 bg-neutral-900 border-b border-gray-700 text-xs">
-      <div>Patient ID: <span class="text-gray-300">OM-XXXXX</span></div>
-      <div>LMP: <span class="text-gray-300">04/01/2025</span></div>
-      <div>GA: <span class="text-gray-300">12w2d</span></div>
-      <div>EDD: <span class="text-gray-300">04/09/2025</span></div>
-      <div>Exam Type: <span class="text-gray-300">NT SCAN</span></div>
-    </div>
-   
-    <div class="relative w-full h-full bg-black border-r border-gray-800">
-      <div ref="elementRef" id="cornerstoneDiv" class="w-full h-full" />
-      <ViewportOverlay
-        :elementRef="elementRef"
-        :isMagnifyVisible="isMagnifyVisible"
-        :zoomFactor="zoomFactor"
-        @update:zoomFactor="(val) => (zoomFactor = val)"
-      />
-    </div>
-
-    <LabelInputOverlay :visible="labelInputVisible" :coords="labelInputCoords" :value="labelInputValue"
-            :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
-   
-    <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm">
-      
-      <button @click="toggleAnnotations"
-        class="w-full bg-blue-500 text-white text-sm py-2 rounded hover:bg-blue-600 transition">
-        {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
-      </button>
-      
-      <div>
-        <h3 class="font-semibold text-gray-300 mb-2">Tools</h3>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            v-for="Tool in toolList"
-            :key="Tool.toolName"
-            @click="handleToolChange(Tool.toolName)"
-            class="tool-btn"
-          >
-            {{ Tool.toolName }}
-          </button>
-        </div>
-      </div>
-      <!-- Image Controls -->
-      <div>
-        <h3 class="font-semibold text-gray-300 mb-2">Image Controls</h3>
-        <div class="grid grid-cols-2 gap-2">
-          <button @click="handleFlip('VFlip')" class="tool-btn">V Flip</button>
-          <button @click="handleFlip('HFlip')" class="tool-btn">H Flip</button>
-          <button @click="undo" class="tool-btn">Undo</button>
-          <button @click="redo" class="tool-btn">Redo</button>
-          <button @click="clear" class="tool-btn col-span-2">Clear</button>
-        </div>
-      </div>
-      
-      <div>
-        <h3 class="font-semibold text-gray-300 mb-2">Snapshot</h3>
-        <button @click="captureDicom(elementRef, frameIndex)"
-          class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
-          Capture
-        </button>
-      </div>
-     
-      <div>
-        <h3 class="font-semibold text-gray-300 mb-2">Upload DICOM</h3>
-        <input
-          type="file"
-          accept=".dcm"
-          @change="handleFileChange"
-          class="text-white bg-gray-800 px-3 py-2 rounded w-full"
-        />
-      </div>
-      
-      <div>
-        <h3 class="font-semibold text-gray-300 mb-2">Measurements</h3>
-        <button
-          @click="() => console.log(annotation.state.getAllAnnotations())"
-          class="tool-btn w-full bg-blue-600 hover:bg-blue-500"
-        >
-          Get Measurements
-        </button>
-      </div>
-    </div>
-   
-    <div class="col-span-2 bg-neutral-900 border-t border-gray-700 px-6 py-3">
-     
-      <input
-        type="range"
-        :min="0"
-        :max="frameCount > 1 ? frameCount - 1 : 0"
-        :value="frameCount > 1 ? frameIndex : 0"
-        @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))"
-        :disabled="frameCount <= 1"
-        class="w-full h-2 rounded bg-gray-700 cursor-pointer appearance-none"
-      />
-     
-      <div v-if="isBookmarked" class="relative w-full -mt-3 -mb-1">
+    <div
+        class="w-screen h-screen bg-black text-white grid grid-cols-[1fr_280px] grid-rows-[auto_1fr_auto] font-sans overflow-hidden">
         <div
-          v-for="(b, i) in bookmarkarray"
-          :key="i"
-          @click="handleFrameChange(b)"
-          class="absolute px-1 mx-1 w-1 h-3 bg-yellow-300 rounded-full border-2 border-yellow-600 shadow-md cursor-pointer hover:scale-110 transition-transform duration-150"
-          :style="{ left: `${(b / (frameCount - 1)) * 100}%`, top: '-4px', transform: 'translateX(-50%)' }"
-          :title="`Go to frame ${b + 1}`"
-        />
-      </div>
-     
-      <div class="flex justify-between items-center gap-4 mt-3">
-        <div class="text-sm text-gray-400 w-24 text-left">
-          {{ frameCount > 1
-            ? `${String(Math.floor(frameIndex / 30)).padStart(2, '0')}:${String(frameIndex % 30).padStart(2, '0')}`
-            : '00:00' }}
+            class="col-span-2 flex items-center justify-between px-6 py-2 bg-neutral-900 border-b border-gray-700 text-xs">
+            <div>Patient ID: <span class="text-gray-300">OM-XXXXX</span></div>
+            <div>LMP: <span class="text-gray-300">04/01/2025</span></div>
+            <div>GA: <span class="text-gray-300">12w2d</span></div>
+            <div>EDD: <span class="text-gray-300">04/09/2025</span></div>
+            <div>Exam Type: <span class="text-gray-300">NT SCAN</span></div>
         </div>
-        <div class="flex items-center gap-2">
-          <button
-            v-for="{ name, onClick, label } in playbackButtons"
-            :key="label"
-            @click="onClick"
-            :disabled="frameCount <= 1"
-            class="tool-btn w-10 h-10 flex items-center justify-center"
-          >
-            <Icon :name="name" />
-          </button>
+
+        <div class="relative w-full h-full bg-black border-r border-gray-800">
+            <div ref="elementRef" id="cornerstoneDiv" class="w-full h-full" />
+            <ViewportOverlay :elementRef="elementRef" :isMagnifyVisible="isMagnifyVisible" :zoomFactor="zoomFactor"
+                @update:zoomFactor="(val) => (zoomFactor = val)" />
         </div>
-        <select
-          @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
-          class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24"
-        >
-          <option value="0.5">0.5x</option>
-          <option value="1" selected>1x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2x</option>
-        </select>
-      </div>
+
+        <LabelInputOverlay :visible="labelInputVisible" :coords="labelInputCoords" :value="labelInputValue"
+            :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
+
+        <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm">
+
+            <button @click="toggleAnnotations"
+                class="w-full bg-blue-500 text-white text-sm py-2 rounded hover:bg-blue-600 transition">
+                {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
+            </button>
+
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Tools</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button v-for="Tool in toolList" :key="Tool.toolName" @click="handleToolChange(Tool.toolName)"
+                        class="tool-btn">
+                        {{ Tool.toolName }}
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Custom Measurement Tools</h3>
+                <div class="grid grid-cols-3 gap-2">
+                    <button v-for="(item, key) in customToolMap" :key="key" @click="handleToolChange2(key)"
+                        class="tool-btn">
+                        {{ key }}
+                    </button>
+                </div>
+            </div>
+            <!-- Image Controls -->
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Image Controls</h3>
+                <div class="grid grid-cols-2 gap-2">
+                    <button @click="handleFlip('VFlip')" class="tool-btn">V Flip</button>
+                    <button @click="handleFlip('HFlip')" class="tool-btn">H Flip</button>
+                    <button @click="undo" class="tool-btn">Undo</button>
+                    <button @click="redo" class="tool-btn">Redo</button>
+                    <button @click="clear" class="tool-btn col-span-2">Clear</button>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Snapshot</h3>
+                <button @click="captureDicom(elementRef, frameIndex)"
+                    class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
+                    Capture
+                </button>
+            </div>
+
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Upload DICOM</h3>
+                <input type="file" accept=".dcm" @change="handleFileChange"
+                    class="text-white bg-gray-800 px-3 py-2 rounded w-full" />
+            </div>
+
+            <div>
+                <h3 class="font-semibold text-gray-300 mb-2">Measurements</h3>
+                <button @click="() => console.log(annotation.state.getAllAnnotations())"
+                    class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
+                    Get Measurements
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-2 bg-neutral-900 border-t border-gray-700 px-6 py-3">
+
+            <input type="range" :min="0" :max="frameCount > 1 ? frameCount - 1 : 0"
+                :value="frameCount > 1 ? frameIndex : 0"
+                @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))"
+                :disabled="frameCount <= 1" class="w-full h-2 rounded bg-gray-700 cursor-pointer appearance-none" />
+
+            <div v-if="isBookmarked" class="relative w-full -mt-3 -mb-1">
+                <div v-for="(b, i) in bookmarkarray" :key="i" @click="handleFrameChange(b)"
+                    class="absolute px-1 mx-1 w-1 h-3 bg-yellow-300 rounded-full border-2 border-yellow-600 shadow-md cursor-pointer hover:scale-110 transition-transform duration-150"
+                    :style="{ left: `${(b / (frameCount - 1)) * 100}%`, top: '-4px', transform: 'translateX(-50%)' }"
+                    :title="`Go to frame ${b + 1}`" />
+            </div>
+
+            <div class="flex justify-between items-center gap-4 mt-3">
+                <div class="text-sm text-gray-400 w-24 text-left">
+                    {{ frameCount > 1
+                        ? `${String(Math.floor(frameIndex / 30)).padStart(2, '0')}:${String(frameIndex % 30).padStart(2,
+                            '0')}`
+                    : '00:00' }}
+                </div>
+                <div class="flex items-center gap-2">
+                    <button v-for="{ name, onClick, label } in playbackButtons" :key="label" @click="onClick"
+                        :disabled="frameCount <= 1" class="tool-btn w-10 h-10 flex items-center justify-center">
+                        <Icon :name="name" />
+                    </button>
+                </div>
+                <select @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
+                    class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24">
+                    <option value="0.5">0.5x</option>
+                    <option value="1" selected>1x</option>
+                    <option value="1.5">1.5x</option>
+                    <option value="2">2x</option>
+                </select>
+            </div>
+        </div>
     </div>
-  </div>
 </template>
-
-
-
-
-
-

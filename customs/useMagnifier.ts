@@ -73,12 +73,12 @@ export function useMagnifier(
     if (currentAnnotationSVG) {
       const clonedSVG = currentAnnotationSVG.cloneNode(true) as SVGSVGElement;
       const clonedChildren = Array.from(clonedSVG.childNodes);
-      clonedSVG.innerHTML = '';
+      clonedSVG.innerHTML = currentAnnotationSVG.innerHTML;
 
-      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      g.setAttribute('transform', `scale(${1.268})`);
-      clonedChildren.forEach((child) => g.appendChild(child));
-      clonedSVG.appendChild(g);
+      // const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      // g.setAttribute('transform', `scale(${1.268})`);
+      // clonedChildren.forEach((child) => g.appendChild(child));
+      // clonedSVG.appendChild(g);
 
       clonedSVG.setAttribute('width', `${zoomCanvasSize}px`);
       clonedSVG.setAttribute('height', `${zoomCanvasSize}px`);
