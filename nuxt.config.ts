@@ -23,5 +23,6 @@ export default defineNuxtConfig({
   },
   build: {
     transpile: ['lodash-es']
-  }
+  },
+   modules: ['nuxt-icon'],
 })

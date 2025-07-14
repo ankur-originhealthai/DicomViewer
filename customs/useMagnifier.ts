@@ -82,7 +82,7 @@ export function useMagnifier(
 
       clonedSVG.setAttribute('width', `${zoomCanvasSize}px`);
       clonedSVG.setAttribute('height', `${zoomCanvasSize}px`);
-      clonedSVG.setAttribute('viewBox', `${sx +9} ${sy} ${sWidth} ${sHeight}`);
+      clonedSVG.setAttribute('viewBox', `${sx} ${sy} ${sWidth} ${sHeight}`);
       clonedSVG.style.position = 'absolute';
       clonedSVG.style.top = '0';
       clonedSVG.style.left = '0';

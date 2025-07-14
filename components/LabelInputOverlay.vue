@@ -10,7 +10,6 @@ const props = defineProps<{
   onClose: () => void;
 }>();
 
-// Auto-focus workaround
 watch(
   () => props.visible,
   async (val) => {
@@ -36,7 +35,7 @@ watch(
     <input
       id="label-input"
       type="text"
-      class="w-48 px-3 py-1 border border-white rounded-md text-yellow-400 placeholder-yellow-300 bg-transparent font-['Roboto'] text-sm focus:outline-none focus:ring-1 focus:ring-white"
+      class="w-48 px-3 py-1 text-yellow-400 placeholder-yellow-300 bg-transparent font-['Roboto'] text-sm focus:outline-none"
       :value="value"
       placeholder="Enter label and press Enter"
       @input="(e) => onChange((e.target as HTMLInputElement).value)"

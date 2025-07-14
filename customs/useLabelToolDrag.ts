@@ -1,5 +1,4 @@
-import { ref, watch } from 'vue';
-import type { Ref } from 'vue';
+import { ref, watch, type Ref } from 'vue';
 import {
   annotation,
   LabelTool,
@@ -13,53 +12,90 @@ export function useLabelToolDrag(
   viewportId: string,
   toolGroupId: string,
   isMagnifyVisible: Ref<boolean>,
-  prevTool: string | null
+  prevToolRef: Ref<string | null>,
+  currentCustomLabel: Ref<string | null>,
+  customlabel: Ref<boolean>
 ) {
   const currentWorldPosRef = ref<number[] | null>(null);
   const currentImageIdRef = ref<string | null>(null);
-  //const prevToolRef = ref<string | null>(null);
+  let lastClickTime = 0;
   let clickCount = 0;
-  let clickTimeout: any = null;
-  let isDragging = false;
-  let startX = 0;
-  let startY = 0;
-  const resetClickState = () => {
-    clickCount = 0;
-    clearTimeout(clickTimeout);
-    clickTimeout = null;
+  const MIN_THRESHOLD = 500;
+  const MAX_THRESHOLD = 2000;
+  const isDragging = ref(false);
+  const dragStart = ref<[number, number] | null>(null);
+  const shouldAddLabel = () => {
+    const anns = annotation.state.getAllAnnotations();
+    return anns.some((ann: any) => {
+      const toolName = ann?.metadata?.toolName;
+      if (toolName && ['Length', 'Angle', 'EllipticalROI'].includes(toolName)) {
+        const label = ann?.data?.label;
+        const isAlreadyCustom = ann?.data?.hasCustomLabel === true;
+        const isLabelEmpty = typeof label === 'string' && label === '';
+        if (isLabelEmpty && !isAlreadyCustom) return true;
+      }
+      return false;
+    });
   };
-  const triggerLabelInput = (event: MouseEvent) => {
-    
-    console.log(prevTool)
-    //if (!['Length', 'Angle', 'EllipticalROI'].includes(prevTool || '')) return;
-    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
-    if (!viewport || !toolGroup) return;
-    if (isMagnifyVisible.value) {
-      isMagnifyVisible.value = false;
-    }
-    const canvas = viewport.getCanvas();
-    const rect = canvas.getBoundingClientRect();
-    const coords: [number, number] = [
-      event.clientX - rect.left,
-      event.clientY - rect.top,
-    ];
-    const worldPos = viewport.canvasToWorld(coords);
-    const imageId = viewport.getCurrentImageId();
-
-    console.log(worldPos);
-    console.log(imageId)
-    currentWorldPosRef.value = worldPos;
-    currentImageIdRef.value = imageId;
-    onLabelSubmit();
+  const AddLabel = () => {
+    const anns = annotation.state.getAllAnnotations();
+    const viewport = renderingEngineRef.value?.getViewport(viewportId);
+    //const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    anns.some((ann: any) => {
+      const toolName = ann?.metadata?.toolName;
+      if (toolName && ['Length', 'Angle', 'EllipticalROI'].includes(toolName)) {
+        const labelEmpty = !ann?.data?.label || ann.data.label.trim() === '';
+        //const isAlreadyCustom = ann?.data?.hasCustomLabel === true;
+        if (labelEmpty) {
+          ann.data.label = currentCustomLabel.value;
+          ann.data.text = currentCustomLabel.value;
+          ann.metadata.label = currentCustomLabel.value;
+          ann.data.hasCustomLabel = true;
+          // const data =ann.data.cachedStats["imageId:dicomfile:0?frame=1"]
+          // data.append(currentCustomLabel.value)
+        }
+        viewport.render()
+      }
+      const anns = annotation.state.getAllAnnotations();
+      console.log(anns)
+    });
   };
-  const onLabelSubmit = () => {
+  
+  // const triggerLabelInput = (event: MouseEvent) => {
+  //   const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+  //   const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
+  //   if (!viewport || !toolGroup) return;
+  //   let activeTool = prevToolRef.value;
+  //   let label = currentCustomLabel.value;
+  //   const isCustomTool = activeTool?.endsWith('_custom') ?? false;
+  //   if (isCustomTool) {
+  //     activeTool = activeTool!.replace('_custom', '');
+  //   }
+  //   label = label ?? activeTool ?? null;
+  //   if (!label) return;
+  //   const allowedTools = ['Length', 'Angle', 'EllipticalROI'];
+  //   if (!allowedTools.includes(activeTool!)) return;
+  //   if (!currentCustomLabel.value && !shouldAddLabel()) return;
+  //   AddLabel();
+  //   const canvas = viewport.getCanvas();
+  //   const rect = canvas.getBoundingClientRect();
+  //   const coords: [number, number] = [
+  //     event.clientX - rect.left,
+  //     event.clientY - rect.top,
+  //   ];
+  //   const worldPos = viewport.canvasToWorld(coords);
+  //   const imageId = viewport.getCurrentImageId();
+  //   currentWorldPosRef.value = worldPos;
+  //   currentImageIdRef.value = imageId;
+  //   onLabelSubmit(label);
+  // };
+  const onLabelSubmit = (label: string) => {
+    if (!customlabel.value) return;
     const worldPos = currentWorldPosRef.value;
     const imageId = currentImageIdRef.value;
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    const label = prevTool;
-    //if (!label || !imageId || !worldPos || !viewport || !toolGroup) return;
+    if (!label || !imageId || !worldPos || !viewport || !toolGroup) return;
     annotation.state.addAnnotation(
       {
         metadata: {
@@ -69,7 +105,8 @@ export function useLabelToolDrag(
           referencedImageId: imageId,
         },
         data: {
-          text: "abc",
+          label,
+          text: label,
           handles: {
             points: [worldPos as any],
             activeHandleIndex: null,
@@ -78,80 +115,72 @@ export function useLabelToolDrag(
       },
       LabelTool.toolName
     );
+    
     toolGroup.setToolActive(LabelTool.toolName, {
       bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
     });
     toolGroup.setToolPassive(LabelTool.toolName);
-    const previousTool = prevTool;
-    if (previousTool !== null) {
-      if (
-        ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(previousTool) &&
-        isMagnifyVisible.value === false
-      ) {
-        isMagnifyVisible.value = true;
-      } else if (
-        isMagnifyVisible.value &&
-        ['Pan', 'Zoom', 'WindowLevel'].includes(previousTool)
-      ) {
-        isMagnifyVisible.value = false;
-      }
-    }
-    if (previousTool && previousTool !== LabelTool.toolName) {
-      toolGroup.setToolActive(previousTool, {
-        bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
-      });
-    }
     viewport.render();
-    prevTool = null;
+    
+    currentCustomLabel.value = null;
+    customlabel.value = false;
+    clickCount = 0;
   };
   watch(
     cornerstoneElement,
     (el, _, onCleanup) => {
       if (!el) return;
-      console.log(el)
       const onMouseDown = (e: MouseEvent) => {
-        isDragging = false;
-        startX = e.clientX;
-        startY = e.clientY;
+        dragStart.value = [e.clientX, e.clientY];
+        isDragging.value = true;
       };
-      const onMouseMove = (e: MouseEvent) => {
-        const dx = Math.abs(e.clientX - startX);
-        const dy = Math.abs(e.clientY - startY);
-        if (dx > 5 || dy > 5) {
-          isDragging = true;
-        }
-      };
-      console.log(clickCount)
       const onMouseUp = (e: MouseEvent) => {
-        if (isDragging) {
-          resetClickState();
-          triggerLabelInput(e);
+        const now = Date.now();
+        const [startX, startY] = dragStart.value || [0, 0];
+        const distance = Math.sqrt(
+          Math.pow(e.clientX - startX, 2) + Math.pow(e.clientY - startY, 2)
+        );
+        if (isDragging.value && distance > 5) {
+          AddLabel()
+          resetState();
           return;
         }
-        clickCount++;
-        if (clickCount === 1) {
-          clickTimeout = setTimeout(() => {
-            resetClickState();
-          }, 1000);
+        
+        if (clickCount === 0) {
+          lastClickTime = now;
+          clickCount = 1;
+        } else {
+          const timeDiff = now - lastClickTime;
+          if (timeDiff >= MIN_THRESHOLD && timeDiff <= MAX_THRESHOLD) {
+            AddLabel()
+            resetState();
+          } else {
+            lastClickTime = now;
+            clickCount = 1;
+          }
         }
-        if (clickCount === 2) {
-           console.log(clickCount)
-          resetClickState();
-          triggerLabelInput(e);
-        }
+        isDragging.value = false;
+        dragStart.value = null;
+      };
+
+      
+      const resetState = () => {
+        currentCustomLabel.value = null;
+        customlabel.value = false;
+        clickCount = 0;
+        isDragging.value = false;
+        dragStart.value = null;
       };
       el.addEventListener('mousedown', onMouseDown);
-      el.addEventListener('mousemove', onMouseMove);
       el.addEventListener('mouseup', onMouseUp);
       onCleanup(() => {
         el.removeEventListener('mousedown', onMouseDown);
-        el.removeEventListener('mousemove', onMouseMove);
         el.removeEventListener('mouseup', onMouseUp);
       });
     },
     { immediate: true }
   );
   return {
-    prevTool,
+    prevTool: prevToolRef,
   };
 }

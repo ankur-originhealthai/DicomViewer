@@ -23,9 +23,7 @@ export const captureDicom = (
   exportCanvas.height = canvas.height;
   const ctx = exportCanvas.getContext("2d");
   if (!ctx) return;
-  // Draw base canvas
   ctx.drawImage(canvas, 0, 0);
-  // Prepare a new SVG element with cloned annotations
   const newSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   newSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
   newSvg.setAttribute("width", String(svgRect.width));
@@ -36,7 +34,6 @@ export const captureDicom = (
       newSvg.appendChild(child.cloneNode(true));
     }
   });
-  // Serialize SVG and convert to Blob URL
   const svgData = new XMLSerializer().serializeToString(newSvg);
   const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
   const url = URL.createObjectURL(svgBlob);

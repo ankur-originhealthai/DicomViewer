@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, watch } from "vue";
 import {
     RenderingEngine,
     Enums,
@@ -9,7 +9,8 @@ import {
     init as cornerstoneCoreInit,
     eventTarget
 } from "@cornerstonejs/core";
-
+import { annotation } from '@cornerstonejs/tools'
+import { ref } from 'vue'
 import {
     init as cornerstoneToolsInit,
     ToolGroupManager,
@@ -22,13 +23,10 @@ import {
     RectangleROITool,
     EllipticalROITool,
     AngleTool,
-    annotation,
     LabelTool,
 
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
-
-
 import { useLabelTool } from '~/customs/useLabelTool'
 import { useMagnifier } from '~/customs/useMagnifier'
 import ViewportOverlay from '~/components/ViewportOverlay.vue'
@@ -37,13 +35,10 @@ import { captureDicom } from "./CaptureDicom.vue";
 import { init as dicomLoaderInit, wadouri } from "@cornerstonejs/dicom-image-loader";
 import { useLabelToolDrag } from "~/customs/useLabelToolDrag";
 
-// Constants
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
 const toolGroupId = "myToolGroup";
 const annotationGroupId = "annotationgroupid";
-// Refs
-
 
 const isPlaying = ref<boolean>(false);
 const isMagnifyVisible = ref(false);
@@ -51,10 +46,10 @@ const speed = ref(1);
 const playIntervalRef = ref<NodeJS.Timeout | null>(null);
 const cornerstoneElement = ref<any>(null);
 const zoomFactor = ref(2);
-const bookmarklabel = ref(false);
+const customlabel = ref(false);
 const bookmarkarray = ref<number[]>([]);
 const toolusedonframe = ref<string[]>([]);
-
+const isEditMode = ref(false);
 const undostack: any = [];
 const redostack: any = [];
 const elementRef = ref<HTMLDivElement | null>(null);
@@ -65,10 +60,8 @@ const frameCount = ref(0);
 const frameIndex = ref(0);
 const isBookmarked = ref(false)
 const hideAnnotation = ref(false)
-
+const hideMeasurements = ref(false)
 const currentCustomLabel = ref<string | null>(null)
-// Handle file upload input
-
 const customToolMap: Record<string, { tool: string; label: string }> = {
     NT: { tool: LengthTool.toolName, label: 'NT' },
     CRL: { tool: LengthTool.toolName, label: 'CRL' },
@@ -78,10 +71,15 @@ const customToolMap: Record<string, { tool: string; label: string }> = {
     BPD: { tool: EllipticalROITool.toolName, label: 'BPD' },
     BS: { tool: EllipticalROITool.toolName, label: 'BS' },
     CR: { tool: AngleTool.toolName, label: 'CR' },
+    AB: { tool: LengthTool.toolName, label: 'NT' },
+    CD: { tool: LengthTool.toolName, label: 'CRL' },
+    EF: { tool: LengthTool.toolName, label: 'TT' },
+    GG: { tool: LengthTool.toolName, label: 'FL' },
+    HH: { tool: LengthTool.toolName, label: 'CM' },
+    TH: { tool: EllipticalROITool.toolName, label: 'BPD' },
+    TG: { tool: EllipticalROITool.toolName, label: 'BS' },
+    VF: { tool: AngleTool.toolName, label: 'CR' },
 };
-
-
-
 
 function handleFileChange(event: Event) {
     const target = event.target as HTMLInputElement;
@@ -90,7 +88,6 @@ function handleFileChange(event: Event) {
         currentFile.value = file;
     }
 
-    console.log(file)
 }
 
 const handleFlip = (type: string) => {
@@ -110,6 +107,12 @@ const handleFlip = (type: string) => {
 onBeforeMount(() => {
     const element = document.getElementById("cornerstoneDiv");
     cornerstoneElement.value = (element);
+
+})
+
+onMounted(() => {
+    const el = document.querySelector('.cornerstone-element') as HTMLElement
+    el?.focus()
 })
 
 watch(currentFile, async () => {
@@ -135,18 +138,11 @@ watch(currentFile, async () => {
             },
         ]);
         const viewport = renderingEngine.getViewport(viewportId) as StackViewport;
-
         const baseImageId = wadouri.fileManager.add(currentFile.value);
-
-
-        const imageData = await imageLoader.loadImage(baseImageId);
-        //console.log("Image loaded successfully:", imageData);
-
+        await imageLoader.loadImage(baseImageId);
         const metadata = metaData.get("multiframeModule", baseImageId);
         const numberOfFrames = metadata?.NumberOfFrames || 1;
         frameCount.value = numberOfFrames;
-        //console.log("no. of frames", frameCount.value)
-
         if (numberOfFrames > 1) {
             const imageIds = numberOfFrames > 1
                 ? Array.from({ length: numberOfFrames }, (_, i) => `${baseImageId}?frame=${i + 1}`)
@@ -178,7 +174,6 @@ watch(currentFile, async () => {
             PanTool,
             ZoomTool,
             WindowLevelTool,
-            LengthTool,
             RectangleROITool,
             EllipticalROITool,
             AngleTool,
@@ -187,6 +182,14 @@ watch(currentFile, async () => {
             toolGroup.addTool(Tool.toolName);
         });
 
+        toolGroup.addTool(LengthTool.toolName, {
+                configuration:{
+                    hidetExtBox: false,
+                    textBox:{
+                        hasMoved: false,
+                        allowedOutsideImage: true
+                    }
+                }})
         toolGroup.addViewport(viewportId, renderingEngineId);
         annotation.config.style.setToolGroupToolStyles(toolGroupId, {
             global: {
@@ -211,6 +214,20 @@ watch(currentFile, async () => {
     }
 });
 
+
+
+const thumbnails = [
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+    '/img.png',
+
+];
 
 const {
     labelInputVisible,
@@ -238,7 +255,6 @@ useMagnifier(
 );
 
 watch([isPlaying, speed], ([playing, spd]) => {
-
     if (playIntervalRef.value) {
         clearInterval(playIntervalRef.value);
         playIntervalRef.value = null;
@@ -246,7 +262,6 @@ watch([isPlaying, speed], ([playing, spd]) => {
     if (!playing || frameCount.value <= 1) return;
     playIntervalRef.value = setInterval(() => {
         const nextIndex = frameIndex.value + 1;
-
         if (nextIndex >= frameCount.value) {
             isPlaying.value = false;
             frameIndex.value = 0;
@@ -260,16 +275,16 @@ watch([isPlaying, speed], ([playing, spd]) => {
         frameIndex.value = nextIndex;
     }, 1000 / 30 / spd);
 }, { immediate: true });
+
 onBeforeUnmount(() => {
     if (playIntervalRef.value) {
         clearInterval(playIntervalRef.value);
         playIntervalRef.value = null;
     }
 });
-// Controls
 const handlePlay = () => {
     isPlaying.value = true;
-    console.log("click")
+
 };
 const handlePause = () => {
     isPlaying.value = false;
@@ -279,16 +294,18 @@ const handleSpeedChange = (num: number) => {
 };
 
 const handleToolChange = (selectedToolName: string) => {
+    customlabel.value = false;
     prevToolRef.value = selectedToolName;
     if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label"].includes(selectedToolName) && isMagnifyVisible.value === false) {
-        isMagnifyVisible.value = (true);
+        isMagnifyVisible.value = true;
     } else if (
         isMagnifyVisible &&
         ["Pan", "Zoom", "WindowLevel"].includes(selectedToolName)
     ) {
-        isMagnifyVisible.value = (false);
+        isMagnifyVisible.value = false;
     }
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    console.log(isMagnifyVisible.value)
     if (!toolGroup) return;
     const allTools = [
         PanTool.toolName,
@@ -301,11 +318,6 @@ const handleToolChange = (selectedToolName: string) => {
         LabelTool.toolName,
     ];
 
-    if (selectedToolName == "CRL") {
-        toolGroup.setToolActive("LengthTool", {
-            bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
-        });
-    }
     allTools.forEach((toolName) => {
         if (toolName === selectedToolName) {
             toolGroup.setToolActive(toolName, {
@@ -320,15 +332,23 @@ const handleToolChange = (selectedToolName: string) => {
     viewport?.render();
 };
 
-
-
 const handleToolChange2 = (selectedToolName: string) => {
+    customlabel.value = true;
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+
     if (!toolGroup) return;
     const customTool = customToolMap[selectedToolName];
-    prevToolRef.value = customTool ? customTool.tool : selectedToolName;
-    console.log(prevToolRef.value)
     const actualToolName = customTool ? customTool.tool : selectedToolName;
+    prevToolRef.value = actualToolName;
+
+    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label"].includes(actualToolName) && isMagnifyVisible.value === false) {
+        isMagnifyVisible.value = (true);
+    } else if (
+        isMagnifyVisible &&
+        ["Pan", "Zoom", "WindowLevel"].includes(actualToolName)
+    ) {
+        isMagnifyVisible.value = (false);
+    }
     currentCustomLabel.value = customTool ? customTool.label : null
     const allTools = [
         PanTool.toolName,
@@ -349,7 +369,6 @@ const handleToolChange2 = (selectedToolName: string) => {
             toolGroup.setToolPassive(toolName);
         }
     });
-    // Handle magnifier toggle
     isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(actualToolName);
     prevToolRef.value = actualToolName;
     if (!toolusedonframe.value.includes(actualToolName)) {
@@ -358,292 +377,251 @@ const handleToolChange2 = (selectedToolName: string) => {
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     viewport?.render();
 
-    
+
 }
-const {prevTool} = useLabelToolDrag(
+useLabelToolDrag(
     elementRef,
     renderingEngineRef,
     viewportId,
     toolGroupId,
-    isMagnifyVisible, 
-    prevToolRef.value
+    isMagnifyVisible,
+    prevToolRef,
+    currentCustomLabel,
+    customlabel
 
-)
-prevToolRef.value = prevTool
-    const trackNewAnnotations = () => {
-        const annotations = annotation.state.getAllAnnotations();
-        annotations.forEach((a) => {
-            undostack.push({
-                uid: a.annotationUID,
-                annotations: a,
-            });
-        });
-    };
+);
 
-    const playbackButtons = [
-        { name: "mdi:skip-backward", onClick: () => handleFrameChange(frameIndex.value - 1), label: 'Previous Frame' },
-        { name: "mdi:play", onClick: handlePlay, label: 'Play' },
-        { name: "mdi:pause", onClick: handlePause, label: 'Pause' },
-        { name: "mdi:skip-forward", onClick: () => handleFrameChange(frameIndex.value + 1), label: 'Next Frame' },
-    ];
-
-    const undo = () => {
-        trackNewAnnotations();
-        if (undostack.length === 0) return;
-        const last = undostack.pop();
-        annotation.state.removeAnnotation(last.uid);
-        redostack.push({
-            uid: last.uid,
-            ann: last.annotations,
-        });
-        const viewport = renderingEngineRef.value?.getViewport(
-            viewportId
-        ) as StackViewport;
-        viewport.render();
-    };
-
-    const redo = () => {
-        if (redostack.length === 0) return;
-        const lastRedo = redostack.pop();
-        annotation.state.addAnnotation(lastRedo.ann, annotationGroupId);
+const trackNewAnnotations = () => {
+    const annotations = annotation.state.getAllAnnotations();
+    annotations.forEach((a) => {
         undostack.push({
-            uid: lastRedo.ann.annotationUID,
-            annotation: lastRedo.ann,
-        });
-        const viewport = renderingEngineRef.value?.getViewport(
-            viewportId
-        ) as StackViewport;
-        viewport.render();
-    };
-
-    const clear = () => {
-        annotation.state.removeAllAnnotations();
-        bookmarkarray.value = ([]);
-        const viewport = renderingEngineRef.value?.getViewport(
-            viewportId
-        ) as StackViewport;
-        viewport.render();
-    };
-
-
-    const bookmark = (frameNumber: number) => {
-        //console.log("called ")
-        const bookmarkedIndex = frameNumber - 1;
-        console.log(bookmarkedIndex)
-        if (!bookmarkarray.value.includes(bookmarkedIndex)) {
-            bookmarkarray.value = [...bookmarkarray.value, bookmarkedIndex];
-        }
-        isBookmarked.value = true;
-
-        console.log(isBookmarked.value)
-
-    };
-
-    watch(frameIndex, () => {
-        const ann = annotation.state.getAllAnnotations();
-        ann.forEach((elem: any) => {
-            const imageId = elem.metadata?.referencedImageId;
-            const frameMatch = imageId?.match(/frame=(\d+)/);
-            if (frameMatch) {
-                const frameNumber = parseInt(frameMatch[1]);
-                //console.log(frameNumber)
-                if (frameNumber) bookmark(frameNumber);
-            }
+            uid: a.annotationUID,
+            annotations: a,
         });
     });
+};
 
-    const toggleAnnotations = () => {
-        const ann = annotation.state.getAllAnnotations();
-        const val = hideAnnotation.value
-        const viewport = renderingEngineRef.value?.getViewport(
-            viewportId
-        ) as StackViewport;
-        console.log(val)
-        if (val == true) {
-            annotation.visibility.showAllAnnotations();
+const playbackButtons = computed(() => [
+    { name: 'mdi:skip-backward', onClick: () => handleFrameChange(frameIndex.value - 1), label: 'Prev' },
 
+    isPlaying.value
+        ? { name: 'mdi:pause', onClick: () => { handlePause(); isPlaying.value = false }, label: 'Pause' }
+        : { name: 'mdi:play-circle-outline', onClick: () => { handlePlay(); isPlaying.value = true }, label: 'Play' },
+
+    { name: 'mdi:skip-forward', onClick: () => handleFrameChange(frameIndex.value + 1), label: 'Next' },
+])
+
+const undo = () => {
+    trackNewAnnotations();
+    if (undostack.length === 0) return;
+    const last = undostack.pop();
+    annotation.state.removeAnnotation(last.uid);
+    redostack.push({
+        uid: last.uid,
+        ann: last.annotations,
+    });
+    const viewport = renderingEngineRef.value?.getViewport(
+        viewportId
+    ) as StackViewport;
+    viewport.render();
+};
+
+const redo = () => {
+    if (redostack.length === 0) return;
+    const lastRedo = redostack.pop();
+    annotation.state.addAnnotation(lastRedo.ann, annotationGroupId);
+    undostack.push({
+        uid: lastRedo.ann.annotationUID,
+        annotation: lastRedo.ann,
+    });
+    const viewport = renderingEngineRef.value?.getViewport(
+        viewportId
+    ) as StackViewport;
+    viewport.render();
+};
+const clear = () => {
+    annotation.state.removeAllAnnotations();
+    bookmarkarray.value = ([]);
+    const viewport = renderingEngineRef.value?.getViewport(
+        viewportId
+    ) as StackViewport;
+    viewport.render();
+};
+const bookmark = (frameNumber: number) => {
+    const bookmarkedIndex = frameNumber - 1;
+    if (!bookmarkarray.value.includes(bookmarkedIndex)) {
+        bookmarkarray.value = [...bookmarkarray.value, bookmarkedIndex];
+    }
+    isBookmarked.value = true;
+
+
+};
+
+watch(frameIndex, () => {
+    const ann = annotation.state.getAllAnnotations();
+    ann.forEach((elem: any) => {
+        const imageId = elem.metadata?.referencedImageId;
+        const frameMatch = imageId?.match(/frame=(\d+)/);
+        if (frameMatch) {
+            const frameNumber = parseInt(frameMatch[1]);
+            if (frameNumber) bookmark(frameNumber);
         }
-        else {
-            ann.map((a) => {
-                if (a.annotationUID) {
-                    annotation.visibility.setAnnotationVisibility(a.annotationUID, val);
+    });
+});
 
-                }
-            });
-        }
+const toggleAnnotations = () => {
+    const ann = annotation.state.getAllAnnotations();
+    const val = hideAnnotation.value;
+    const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
+
+    if (val) {
+        ann.forEach(a => {
+            if (a.annotationUID && a.metadata?.toolName === 'Label') {
+                annotation.visibility.setAnnotationVisibility(a.annotationUID);
+            }
+        })
+    } else {
+
+        ann.forEach(a => {
+            if (a.annotationUID && a.metadata?.toolName === 'Label') {
+                annotation.visibility.setAnnotationVisibility(a.annotationUID, false);
+            }
+        });
+    }
+    viewport.render();
+    hideAnnotation.value = !val;
+};
+
+const toggleMeasurements = () => {
+    const ann = annotation.state.getAllAnnotations();
+    const val = hideMeasurements.value;
+    const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
+
+    if (val) {
+        ann.forEach(a => {
+            if (a.annotationUID && a.metadata?.toolName !== 'Label') {
+                annotation.visibility.setAnnotationVisibility(a.annotationUID);
+            }
+        });
+    } else {
+        ann.forEach(a => {
+            if (a.annotationUID && a.metadata?.toolName !== 'Label') {
+                annotation.visibility.setAnnotationVisibility(a.annotationUID, false);
+            }
+        });
+    }
+    viewport.render();
+    hideMeasurements.value = !val;
+};
+
+const handleFrameChange = (index: number) => {
+    const viewport = renderingEngineRef.value?.getViewport(
+        viewportId
+    ) as StackViewport;
+    if (index >= 0 && index < frameCount.value) {
+        viewport.setImageIdIndex(index);
+        viewport.render();
+        frameIndex.value = (index);
+    }
+};
+
+const toolList = [
+    PanTool,
+    ZoomTool,
+    LengthTool,
+    EllipticalROITool,
+    AngleTool,
+
+];
+
+window.addEventListener('keydown', (event) => {
+    if (event.key === 'Backspace' || event.key === 'Delete') {
+        const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
+        const selectedUIDs = annotation.selection.getAnnotationsSelected();
+        selectedUIDs.forEach((uid) => {
+            annotation.state.removeAnnotation(uid);
+            annotation.selection.setAnnotationSelected(uid, false);
+        });
         viewport.render()
-        hideAnnotation.value = !val;
-    };
-    const getBookmarkLeft = (bookmarkedIndex: number, total: number) => {
-        if (bookmarkedIndex == null || total <= 1) return '0px';
-        const sliderIndex = bookmarkedIndex;
-        const percent = sliderIndex / (total - 1);
-        const pixelValue = 19 + percent * 850;
-        console.log(`pixel value ${pixelValue} for frame ${sliderIndex}`);
-        return `${pixelValue - 5}px`;
-    };
-
-    const handleFrameChange = (index: number) => {
-        const viewport = renderingEngineRef.value?.getViewport(
-            viewportId
-        ) as StackViewport;
-        if (index >= 0 && index < frameCount.value) {
-            viewport.setImageIdIndex(index);
-            viewport.render();
-            frameIndex.value = (index);
-        }
-    };
-
-
-    const toolList = [
-        PanTool,
-        ZoomTool,
-        WindowLevelTool,
-        LengthTool,
-        RectangleROITool,
-        EllipticalROITool,
-        AngleTool,
-
-    ];
-
-// import { useViewportMagnifier } from '../components/Temp.vue';
-// //const renderingEngineRef = ref<RenderingEngine | null>(null);
-// const mainElement = ref<HTMLElement | null>(null);
-// const zoomElement = ref<HTMLElement | null>(null);
-// //const isMagnifyVisible = ref(true); // toggle magnifier on/off
-// const mainViewportId = 'myViewport';
-// // Create rendering engine and load your images as usual...
-// // Then call:
-// useViewportMagnifier(
-//   elementRef,
-//   zoomElement,
-//   renderingEngineRef,
-//   isMagnifyVisible,
-//   mainViewportId,
-//   "zoomViewportId",
-//   zoomFactor
-// );
-
+    }
+});
 
 </script>
 
 <template>
     <div
-        class="w-screen h-screen bg-black text-white grid grid-cols-[1fr_280px] grid-rows-[auto_1fr_auto] font-sans overflow-hidden">
-        <div
-            class="col-span-2 flex items-center justify-between px-6 py-2 bg-neutral-900 border-b border-gray-700 text-xs">
-            <div>Patient ID: <span class="text-gray-300">OM-XXXXX</span></div>
-            <div>LMP: <span class="text-gray-300">04/01/2025</span></div>
-            <div>GA: <span class="text-gray-300">12w2d</span></div>
-            <div>EDD: <span class="text-gray-300">04/09/2025</span></div>
-            <div>Exam Type: <span class="text-gray-300">NT SCAN</span></div>
+        class="w-screen h-screen bg-black text-white font-sans grid grid-rows-[auto_1fr] grid-cols-[1fr_auto] overflow-hidden">
+        <div class="col-span-2 p-2">
+            <TopHeader patientId="OM-29174822" lmp="04/23/2023" ga="12w2d" edd="01/28/2024" examType="NT SCAN"
+                userInitials="JD" />
         </div>
+        <div class="flex h-full m-1">
+            <div
+                class="w-[110px] bg-neutral-900 border-r border-gray-800 flex flex-col items-center py-2 overflow-y-auto m-1">
 
-        <div class="relative w-full h-full bg-black border-r border-gray-800">
-            <div ref="elementRef" id="cornerstoneDiv" class="w-full h-full" />
-            <ViewportOverlay :elementRef="elementRef" :isMagnifyVisible="isMagnifyVisible" :zoomFactor="zoomFactor"
-                @update:zoomFactor="(val) => (zoomFactor = val)" />
+                <button class="tool-btn m-1" @click="">
+                    <Icon name="mdi:arrow-left" />
+                </button>
+                <div class="flex flex-col items-center space-y-2 m-1">
+                    <button v-for="(thumb, index) in thumbnails" :key="index"
+                        class="w-20 h-20 rounded overflow-hidden border-2"
+                        :class="index === 0 ? 'border-blue-500' : 'border-transparent'" @click="">
+                        <img :src="thumb" class="object-cover w-full h-full" />
+                    </button>
+                </div>
+
+            </div>
+            <div class="flex-1 flex flex-col m-1">
+                <div class="flex justify-between items-center px-4 py-2 bg-neutral-950 border-b border-gray-800 m-1">
+                    <div class="font-semibold text-2xl">CRL <span class="text-gray-400 text-base">Midsagittal
+                            view</span></div>
+                    <button v-if="!isEditMode"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded text-s"
+                        @click="isEditMode = true">
+                        <Icon name="mdi:pen" class="w-8 h-10" /> Edit
+                    </button>
+                </div>
+                <div ref="elementRef" id="cornerstoneDiv" tabindex="0"
+                    class="relative bg-neutral-900 mx-auto my-2 rounded-md shadow-md m-1 focus:outline-none"
+                    style="width: 900px; height: 550px;" />
+                <ViewportOverlay :elementRef="elementRef" :isMagnifyVisible="isMagnifyVisible" :zoomFactor="zoomFactor"
+                    @update:zoomFactor="(val) => (zoomFactor = val)" />
+
+                <div v-if="!isEditMode" class="border-t border-gray-800 p-2 my-10">
+                    <PlayerSlider :handleFrameChange="handleFrameChange" :frameIndex="frameIndex"
+                        :frameCount="frameCount" :isBookmarked="isBookmarked" :bookmarkarray="bookmarkarray" />
+                    <PlayerControls :handleSpeedChange="handleSpeedChange" :playbackButtons="playbackButtons"
+                        :handleToolChange="handleToolChange" :captureDicom="captureDicom" :elementRef="elementRef"
+                        :frameIndex="frameIndex" :frameCount="frameCount" />
+                </div>
+                <template v-if="isEditMode">
+                    <div class="p-2">
+                        <ResetComponent :undo="undo" :redo="redo" :reset="clear" :undostack = "undostack" :redostack="redostack" />
+                        <ExitEditor @exit="isEditMode = false" @save="" @replace="" />
+                    </div>
+                </template>
+            </div>
+        </div>
+        <div class="h-full w-[360px] bg-neutral-950 overflow-hidden m-2">
+            <SummarySidebar v-if="!isEditMode" :cineEvaluation="[
+                { label: 'Crown', level: 'normal' },
+                { label: 'Nasal Bone', level: 'normal' },
+                { label: 'Absent Zygoma', level: 'normal' },
+                { label: 'Head And Rump Fill > 60% Of The Scan Area', level: 'normal' },
+                { label: 'Rump', level: 'normal' },
+                { label: 'Neutral Position (Angle Between Chin And Anterior Neck < 90º)', level: 'warning' },
+                { label: 'Fetus In Horizontal Orientation', level: 'warning' },
+            ]" />
+            <SidebarControls v-else :handleToolChange="handleToolChange" :handleToolChange2="handleToolChange2"
+                :handleFlip="handleFlip" :undo="undo" :redo="redo" :clear="clear" :captureDicom="captureDicom"
+                :handleFileChange="handleFileChange" :toggleAnnotations="toggleAnnotations"
+                :toggleMeasurements="toggleMeasurements" :hideMeasurements="hideMeasurements"
+                :hideAnnotation="hideAnnotation" :toolList="toolList" :customToolMap="customToolMap"
+                :elementRef="elementRef" :frameIndex="frameIndex" :cornerstoneElement="elementRef"
+                :renderingEngineRef="renderingEngineRef" :viewportId="viewportId" :toolGroupId="toolGroupId" />
         </div>
 
         <LabelInputOverlay :visible="labelInputVisible" :coords="labelInputCoords" :value="labelInputValue"
             :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
-
-        <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm">
-
-            <button @click="toggleAnnotations"
-                class="w-full bg-blue-500 text-white text-sm py-2 rounded hover:bg-blue-600 transition">
-                {{ hideAnnotation ? 'Show Annotations' : 'Hide Annotations' }}
-            </button>
-
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Tools</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <button v-for="Tool in toolList" :key="Tool.toolName" @click="handleToolChange(Tool.toolName)"
-                        class="tool-btn">
-                        {{ Tool.toolName }}
-                    </button>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Custom Measurement Tools</h3>
-                <div class="grid grid-cols-3 gap-2">
-                    <button v-for="(item, key) in customToolMap" :key="key" @click="handleToolChange2(key)"
-                        class="tool-btn">
-                        {{ key }}
-                    </button>
-                </div>
-            </div>
-            <!-- Image Controls -->
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Image Controls</h3>
-                <div class="grid grid-cols-2 gap-2">
-                    <button @click="handleFlip('VFlip')" class="tool-btn">V Flip</button>
-                    <button @click="handleFlip('HFlip')" class="tool-btn">H Flip</button>
-                    <button @click="undo" class="tool-btn">Undo</button>
-                    <button @click="redo" class="tool-btn">Redo</button>
-                    <button @click="clear" class="tool-btn col-span-2">Clear</button>
-                </div>
-            </div>
-
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Snapshot</h3>
-                <button @click="captureDicom(elementRef, frameIndex)"
-                    class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
-                    Capture
-                </button>
-            </div>
-
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Upload DICOM</h3>
-                <input type="file" accept=".dcm" @change="handleFileChange"
-                    class="text-white bg-gray-800 px-3 py-2 rounded w-full" />
-            </div>
-
-            <div>
-                <h3 class="font-semibold text-gray-300 mb-2">Measurements</h3>
-                <button @click="() => console.log(annotation.state.getAllAnnotations())"
-                    class="tool-btn w-full bg-blue-600 hover:bg-blue-500">
-                    Get Measurements
-                </button>
-            </div>
-        </div>
-
-        <div class="col-span-2 bg-neutral-900 border-t border-gray-700 px-6 py-3">
-
-            <input type="range" :min="0" :max="frameCount > 1 ? frameCount - 1 : 0"
-                :value="frameCount > 1 ? frameIndex : 0"
-                @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))"
-                :disabled="frameCount <= 1" class="w-full h-2 rounded bg-gray-700 cursor-pointer appearance-none" />
-
-            <div v-if="isBookmarked" class="relative w-full -mt-3 -mb-1">
-                <div v-for="(b, i) in bookmarkarray" :key="i" @click="handleFrameChange(b)"
-                    class="absolute px-1 mx-1 w-1 h-3 bg-yellow-300 rounded-full border-2 border-yellow-600 shadow-md cursor-pointer hover:scale-110 transition-transform duration-150"
-                    :style="{ left: `${(b / (frameCount - 1)) * 100}%`, top: '-4px', transform: 'translateX(-50%)' }"
-                    :title="`Go to frame ${b + 1}`" />
-            </div>
-
-            <div class="flex justify-between items-center gap-4 mt-3">
-                <div class="text-sm text-gray-400 w-24 text-left">
-                    {{ frameCount > 1
-                        ? `${String(Math.floor(frameIndex / 30)).padStart(2, '0')}:${String(frameIndex % 30).padStart(2,
-                            '0')}`
-                    : '00:00' }}
-                </div>
-                <div class="flex items-center gap-2">
-                    <button v-for="{ name, onClick, label } in playbackButtons" :key="label" @click="onClick"
-                        :disabled="frameCount <= 1" class="tool-btn w-10 h-10 flex items-center justify-center">
-                        <Icon :name="name" />
-                    </button>
-                </div>
-                <select @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
-                    class="h-10 bg-gray-900 border border-gray-700 rounded-md text-white hover:bg-gray-800 w-24">
-                    <option value="0.5">0.5x</option>
-                    <option value="1" selected>1x</option>
-                    <option value="1.5">1.5x</option>
-                    <option value="2">2x</option>
-                </select>
-            </div>
-        </div>
     </div>
 </template>

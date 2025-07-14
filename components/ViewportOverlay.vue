@@ -19,7 +19,7 @@ const emit = defineEmits<{
 
     <div
       v-if="isMagnifyVisible"
-      class="absolute top-3 right-3 z-50 flex flex-col items-center space-y-2 pointer-events-none"
+      class="absolute top-40 right-100 z-50 flex flex-col items-center space-y-2 pointer-events-none"
     >
       <div class="relative w-[200px] h-[200px]">
         <canvas
@@ -35,7 +35,6 @@ const emit = defineEmits<{
         />
       </div>
 
-      <!-- Zoom control slider -->
       <div
         class="flex items-center gap-2 bg-neutral-800 px-2 py-1 rounded pointer-events-auto text-white"
       >
