@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full bg-neutral-900 border-b border-gray-700 px-6 py-3 flex items-center justify-between text-white">
+  <div class="w-[1366px] h-[62px] bg-neutral-900 border-b border-gray-700 px-6 py-3 flex items-center justify-between text-white">
     
     <div class="flex items-center gap-3">
       <img src="">

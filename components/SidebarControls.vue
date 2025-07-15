@@ -1,15 +1,15 @@
 <template>
-  <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm h-[840px]">
+  <div class="bg-neutral-900 p-4 border-l border-gray-800 overflow-y-auto space-y-6 text-sm h-[670px]">
 
     <AddLabelToCanvas ref="addLabelRef" :cornerstoneElement="props.cornerstoneElement"
       :renderingEngineRef="props.renderingEngineRef" :viewportId="props.viewportId" :toolGroupId="props.toolGroupId" />
 
-    <div class="flex justify-between gap-4 text-xs mb-2">
+    <div class="flex justify-between gap-4 text-xs mb-1">
 
-      <div class="flex justify-between gap-3 text-xs mb-2">
+      <div class="flex justify-between gap-3 text-xs mb-1">
 
-        <div class="bg-[#1e1e22] border border-[#2c2c2f] rounded-md px-4 py-3 w-1/2">
-          <h3 class="text-sm font-semibold text-neutral-300 mb-1">AI Tools</h3>
+        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-2 py-3 w-1/2">
+          <h3 class="text-sm font-semibold text-neutral-300">AI Tools</h3>
           <p class="text-[11px] text-gray-500 mb-3">Automatically detected by AI</p>
 
           <div class="flex gap-2">
@@ -22,8 +22,8 @@
           </div>
         </div>
 
-        <div class="bg-[#1e1e22] border border-[#2c2c2f] rounded-md px-4 py-3 w-1/2">
-          <h3 class="text-sm font-semibold text-neutral-300 mb-1">Show</h3>
+        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-4 py-3 w-1/2">
+          <h3 class="text-sm font-semibold text-neutral-300">Show</h3>
           <p class="text-[11px] text-gray-500 mb-2">View options for all markups</p>
 
           <div class="flex flex-col gap-2">
@@ -62,7 +62,7 @@
     </div>
 
 
-    <div class="flex space-x-2">
+    <div class="flex space-x-3">
       <button class="w-full text-sm rounded-t-md"
         :class="activeTab === 'measure' ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400'"
         @click="activeTab = 'measure'">Measure</button>
@@ -77,9 +77,9 @@
     <div v-if="activeTab === 'measure'" class="space-y-6 mt-2 bg-neutral-900">
       <div>
         <h3 class="text-neutral-300 font-semibold mb-2">OB Measurements</h3>
-        <p class="text-neutral-300 text-xs mb-2">OB Measurements tools are present with required calipers</p>
-        <div ref="obScrollRef" class="flex gap-3 overflow-x-hidden max-w-full pointer-events-none">
-          <div class="grid grid-rows-3 grid-flow-col gap-3.5 pointer-events-auto">
+        <p class="text-neutral-300 text-xs mb-3">OB Measurements tools are present with required calipers</p>
+        <div ref="obScrollRef" class="flex gap-2 overflow-x-hidden max-w-full pointer-events-none">
+          <div class="grid grid-rows-3 grid-flow-col gap-3 pointer-events-auto">
             <button v-for="(tool, key) in customToolMap" :key="key" @click="() => handleToolChange2(key)"
               class="tool-btn">
               {{ key }}
@@ -101,11 +101,11 @@
       </div>
 
       <div>
-        <h3 class="text-neutral-300 font-semibold mb-5">Caliper Measurements</h3>
+        <h3 class="text-neutral-300 font-semibold mb-2">Caliper Measurements</h3>
         <p class="text-neutral-300 text-xs mb-2">Caliper Measurements will not be included as part of your exam findings</p>
 
         <p class="text-neutral-500 text-xs m-1">2D Tools</p>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-3 gap-2">
           <button @click="() => handleToolChange('Length')" class="tool-btn">
             <Icon name="mdi:ruler" class="w-2 h-4" />
             Dist.
@@ -119,13 +119,6 @@
           <button @click="() => handleToolChange('Angle')" class="tool-btn">
             <Icon name="mdi:angle-acute" class="w-2 h-4" />
             Angle
-          </button>
-
-
-
-          <button @click="() => handleToolChange('RectangleROI')" class="tool-btn">
-            <Icon name="mdi:rectangle-outline" class="w-2 h-4" />
-            Rect.
           </button>
         </div>
       </div>

@@ -66,8 +66,8 @@ export function useMagnifier(
     zoomCtx.moveTo(zoomCanvasSize / 2, zoomCanvasSize / 2 - 5);
     zoomCtx.lineTo(zoomCanvasSize / 2, zoomCanvasSize / 2 + 5);
     zoomCtx.stroke();
+    //console.log(zoomCanvasSize / 2 - 5, zoomCanvasSize / 2)
 
-    // Clone annotations
     svgOverlayWrapper.innerHTML = '';
     const currentAnnotationSVG = container.querySelector('svg');
     if (currentAnnotationSVG) {
@@ -90,7 +90,7 @@ export function useMagnifier(
 
       svgOverlayWrapper.appendChild(clonedSVG);
     }
-
+    //console.log(sx, sy)
     animationFrameRef = requestAnimationFrame(drawZoom);
   };
 

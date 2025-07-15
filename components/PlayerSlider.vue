@@ -1,6 +1,6 @@
 
 <template>
-  <div class="flex justify-center items-center gap-4 flex-wrap my-8">
+  <div class="flex justify-center items-center gap-4 flex-wrap my-4">
     
     <input type="range" :min="0" :max="frameCount > 1 ? frameCount - 1 : 0" :value="frameCount > 1 ? frameIndex : 0"
       @input="(e) => handleFrameChange(Number((e.target as HTMLInputElement).value))" 

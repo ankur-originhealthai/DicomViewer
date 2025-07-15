@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-wrap justify-center items-center gap-5 p-1">
+  <div class="flex flex-wrap justify-center items-center gap-5">
 
     <div class="flex flex-col items-center">
       <button

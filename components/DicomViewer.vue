@@ -128,6 +128,14 @@ watch(currentFile, async () => {
         const element = elementRef.value;
         if (!element || !currentFile.value) return;
 
+        if(renderingEngineRef.value){
+            renderingEngineRef.value.destroy();
+            renderingEngineRef.value = null;
+
+        }
+        ToolGroupManager.destroyToolGroup(toolGroupId);
+        annotation.state.removeAllAnnotations()
+
         const renderingEngine = new RenderingEngine(renderingEngineId);
         renderingEngineRef.value = renderingEngine;
         renderingEngine.setViewports([
@@ -155,7 +163,10 @@ watch(currentFile, async () => {
         }
         viewport.setImageIdIndex(0);
         viewport.render();
-
+        const toolgrp = ToolGroupManager.getToolGroup(toolGroupId);
+        if(toolgrp){
+            ToolGroupManager.destroyToolGroup(toolGroupId)
+        }
         [
             PanTool,
             ZoomTool,
@@ -174,6 +185,7 @@ watch(currentFile, async () => {
             PanTool,
             ZoomTool,
             WindowLevelTool,
+            LengthTool,
             RectangleROITool,
             EllipticalROITool,
             AngleTool,
@@ -181,15 +193,6 @@ watch(currentFile, async () => {
         ].forEach((Tool) => {
             toolGroup.addTool(Tool.toolName);
         });
-
-        toolGroup.addTool(LengthTool.toolName, {
-                configuration:{
-                    hidetExtBox: false,
-                    textBox:{
-                        hasMoved: false,
-                        allowedOutsideImage: true
-                    }
-                }})
         toolGroup.addViewport(viewportId, renderingEngineId);
         annotation.config.style.setToolGroupToolStyles(toolGroupId, {
             global: {
@@ -208,6 +211,8 @@ watch(currentFile, async () => {
             },
         });
         toolGroup.addViewport(viewportId, renderingEngineId);
+
+        
         loaded.value = true;
     } catch (error) {
         console.error("DICOM load/render error:", error);
@@ -224,8 +229,7 @@ const thumbnails = [
     '/img.png',
     '/img.png',
     '/img.png',
-    '/img.png',
-    '/img.png',
+    
 
 ];
 
@@ -551,13 +555,13 @@ window.addEventListener('keydown', (event) => {
 <template>
     <div
         class="w-screen h-screen bg-black text-white font-sans grid grid-rows-[auto_1fr] grid-cols-[1fr_auto] overflow-hidden">
-        <div class="col-span-2 p-2">
+        <div class="col-span-2 m-1">
             <TopHeader patientId="OM-29174822" lmp="04/23/2023" ga="12w2d" edd="01/28/2024" examType="NT SCAN"
                 userInitials="JD" />
         </div>
         <div class="flex h-full m-1">
             <div
-                class="w-[110px] bg-neutral-900 border-r border-gray-800 flex flex-col items-center py-2 overflow-y-auto m-1">
+                class="w-[111px] h-[938px] bg-neutral-900 border-r border-gray-800 flex flex-col items-center py-2 overflow-y-auto m-1">
 
                 <button class="tool-btn m-1" @click="">
                     <Icon name="mdi:arrow-left" />
@@ -583,11 +587,11 @@ window.addEventListener('keydown', (event) => {
                 </div>
                 <div ref="elementRef" id="cornerstoneDiv" tabindex="0"
                     class="relative bg-neutral-900 mx-auto my-2 rounded-md shadow-md m-1 focus:outline-none"
-                    style="width: 900px; height: 550px;" />
+                    style="width: 680px; height: 500px;" />
                 <ViewportOverlay :elementRef="elementRef" :isMagnifyVisible="isMagnifyVisible" :zoomFactor="zoomFactor"
                     @update:zoomFactor="(val) => (zoomFactor = val)" />
 
-                <div v-if="!isEditMode" class="border-t border-gray-800 p-2 my-10">
+                <div v-if="!isEditMode" class="border-t border-gray-800">
                     <PlayerSlider :handleFrameChange="handleFrameChange" :frameIndex="frameIndex"
                         :frameCount="frameCount" :isBookmarked="isBookmarked" :bookmarkarray="bookmarkarray" />
                     <PlayerControls :handleSpeedChange="handleSpeedChange" :playbackButtons="playbackButtons"
@@ -595,14 +599,14 @@ window.addEventListener('keydown', (event) => {
                         :frameIndex="frameIndex" :frameCount="frameCount" />
                 </div>
                 <template v-if="isEditMode">
-                    <div class="p-2">
+                    <div class="">
                         <ResetComponent :undo="undo" :redo="redo" :reset="clear" :undostack = "undostack" :redostack="redostack" />
                         <ExitEditor @exit="isEditMode = false" @save="" @replace="" />
                     </div>
                 </template>
             </div>
         </div>
-        <div class="h-full w-[360px] bg-neutral-950 overflow-hidden m-2">
+        <div class="h-full w-[360px] bg-neutral-950 overflow-hidden">
             <SummarySidebar v-if="!isEditMode" :cineEvaluation="[
                 { label: 'Crown', level: 'normal' },
                 { label: 'Nasal Bone', level: 'normal' },
