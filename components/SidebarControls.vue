@@ -8,7 +8,7 @@
 
       <div class="flex justify-between gap-3 text-xs mb-1">
 
-        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-2 py-3 w-1/2">
+        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-2 py-2 w-1/2">
           <h3 class="text-sm font-semibold text-neutral-300">AI Tools</h3>
           <p class="text-[11px] text-gray-500 mb-3">Automatically detected by AI</p>
 
@@ -22,7 +22,7 @@
           </div>
         </div>
 
-        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-4 py-3 w-1/2">
+        <div class="bg-neutral-800 border border-[#2c2c2f] rounded-md px-4 py-2 w-1/2">
           <h3 class="text-sm font-semibold text-neutral-300">Show</h3>
           <p class="text-[11px] text-gray-500 mb-2">View options for all markups</p>
 
@@ -74,9 +74,9 @@
         @click="activeTab = 'cine'">Cine</button>
     </div>
 
-    <div v-if="activeTab === 'measure'" class="space-y-6 mt-2 bg-neutral-900">
+    <div v-if="activeTab === 'measure'" class="space-y-5 bg-neutral-800 p-2">
       <div>
-        <h3 class="text-neutral-300 font-semibold mb-2">OB Measurements</h3>
+        <h3 class="text-neutral-300 font-semibold mb-1">OB Measurements</h3>
         <p class="text-neutral-300 text-xs mb-3">OB Measurements tools are present with required calipers</p>
         <div ref="obScrollRef" class="flex gap-2 overflow-x-hidden max-w-full pointer-events-none">
           <div class="grid grid-rows-3 grid-flow-col gap-3 pointer-events-auto">
@@ -87,7 +87,7 @@
           </div>
         </div>
 
-        <div class="flex justify-between items-center mt-2 w-full px-1">
+        <div class="flex justify-between items-center mt-1 w-full px-1">
           <button @click="scrollOBLeft" class="tool-btn h-9 w-5 items-center justify-center">
             <Icon name="mdi:chevron-left" class="w-10 h-5 text-white" />
           </button>
@@ -101,8 +101,8 @@
       </div>
 
       <div>
-        <h3 class="text-neutral-300 font-semibold mb-2">Caliper Measurements</h3>
-        <p class="text-neutral-300 text-xs mb-2">Caliper Measurements will not be included as part of your exam findings</p>
+        <h3 class="text-neutral-300 font-semibold mb-1">Caliper Measurements</h3>
+        <p class="text-neutral-300 text-xs mb-1">Caliper Measurements will not be included as part of your exam findings</p>
 
         <p class="text-neutral-500 text-xs m-1">2D Tools</p>
         <div class="grid grid-cols-3 gap-2">

@@ -1,5 +1,5 @@
 <template>
-  <div class="w-[320px] bg-neutral-950 text-white border-l border-gray-800 p-4 overflow-y-auto">
+  <div class="w-[320px] bg-neutral-800 text-white border-l border-gray-800 p-4 overflow-y-auto">
     <h2 class="text-lg font-semibold mb-3">Measurements</h2>
 
     <div v-if="measurementList.length">
