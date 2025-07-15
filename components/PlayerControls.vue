@@ -41,7 +41,7 @@
     <div class="flex flex-col items-center">
       <button
         @click="() => captureDicom(elementRef, frameIndex)"
-        class="tool-btn bg-blue-600 hover:bg-blue-500"
+        class="tool-btn"
       >
         <Icon name="mdi:camera-outline" class="w-6 h-6" />
       </button>

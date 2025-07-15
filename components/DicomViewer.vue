@@ -7,7 +7,8 @@ import {
     metaData,
     StackViewport,
     init as cornerstoneCoreInit,
-    eventTarget
+    eventTarget,
+    
 } from "@cornerstonejs/core";
 import { annotation } from '@cornerstonejs/tools'
 import { ref } from 'vue'
@@ -24,6 +25,7 @@ import {
     EllipticalROITool,
     AngleTool,
     LabelTool,
+   
 
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
@@ -113,6 +115,7 @@ onBeforeMount(() => {
 onMounted(() => {
     const el = document.querySelector('.cornerstone-element') as HTMLElement
     el?.focus()
+
 })
 
 watch(currentFile, async () => {
@@ -128,7 +131,7 @@ watch(currentFile, async () => {
         const element = elementRef.value;
         if (!element || !currentFile.value) return;
 
-        if(renderingEngineRef.value){
+        if (renderingEngineRef.value) {
             renderingEngineRef.value.destroy();
             renderingEngineRef.value = null;
 
@@ -164,7 +167,7 @@ watch(currentFile, async () => {
         viewport.setImageIdIndex(0);
         viewport.render();
         const toolgrp = ToolGroupManager.getToolGroup(toolGroupId);
-        if(toolgrp){
+        if (toolgrp) {
             ToolGroupManager.destroyToolGroup(toolGroupId)
         }
         [
@@ -196,7 +199,7 @@ watch(currentFile, async () => {
         toolGroup.addViewport(viewportId, renderingEngineId);
         annotation.config.style.setToolGroupToolStyles(toolGroupId, {
             global: {
-                lineWidth: "3",
+                lineWidth: "2",
                 lineDash: "4,2",
                 color: "#FFC700",
                 colorHighlighted: "#FFC700",
@@ -206,13 +209,15 @@ watch(currentFile, async () => {
                 textBoxColorHighlighted: "#FFC700",
                 textBoxColorSelected: "#FFC700",
                 textBoxColorLocked: "#FFC700",
-                textBoxColor: "#FFC700"
+                textBoxColor: "#FFC700",
+                textBoxLinkLineWidth: '1',
+                textBoxLinkLineDash: '2,3',
 
             },
         });
         toolGroup.addViewport(viewportId, renderingEngineId);
 
-        
+
         loaded.value = true;
     } catch (error) {
         console.error("DICOM load/render error:", error);
@@ -229,7 +234,7 @@ const thumbnails = [
     '/img.png',
     '/img.png',
     '/img.png',
-    
+
 
 ];
 
@@ -300,7 +305,7 @@ const handleSpeedChange = (num: number) => {
 const handleToolChange = (selectedToolName: string) => {
     customlabel.value = false;
     prevToolRef.value = selectedToolName;
-    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label"].includes(selectedToolName) && isMagnifyVisible.value === false) {
+    if (["Length", "EllipticalROI", "Angle", "Label"].includes(selectedToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = true;
     } else if (
         isMagnifyVisible &&
@@ -309,7 +314,7 @@ const handleToolChange = (selectedToolName: string) => {
         isMagnifyVisible.value = false;
     }
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    console.log(isMagnifyVisible.value)
+
     if (!toolGroup) return;
     const allTools = [
         PanTool.toolName,
@@ -334,6 +339,7 @@ const handleToolChange = (selectedToolName: string) => {
     toolusedonframe.value = toolusedonframe.value.includes(selectedToolName) ? toolusedonframe.value : [...toolusedonframe.value, selectedToolName]
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     viewport?.render();
+
 };
 
 const handleToolChange2 = (selectedToolName: string) => {
@@ -373,6 +379,7 @@ const handleToolChange2 = (selectedToolName: string) => {
             toolGroup.setToolPassive(toolName);
         }
     });
+    //elementRef.value.style.cursor = 'auto'
     isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(actualToolName);
     prevToolRef.value = actualToolName;
     if (!toolusedonframe.value.includes(actualToolName)) {
@@ -383,7 +390,7 @@ const handleToolChange2 = (selectedToolName: string) => {
 
 
 }
-useLabelToolDrag(
+const { prevTool } = useLabelToolDrag(
     elementRef,
     renderingEngineRef,
     viewportId,
@@ -394,6 +401,27 @@ useLabelToolDrag(
     customlabel
 
 );
+prevToolRef.value = prevTool.value
+
+onMounted(() => {
+    eventTarget.addEventListener(csToolsEnums.Events.ANNOTATION_ADDED,
+        () => {
+            const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+            const activeTool = toolGroup?.getCurrentActivePrimaryToolName()
+            if (!toolGroup) return
+            if (!activeTool) return
+            toolGroup.setToolPassive(activeTool);
+            //if (element) element.style.cursor = 'auto';
+            const viewport = renderingEngineRef.value?.getViewport(viewportId);
+            viewport?.render();
+        }
+    );
+
+
+
+})
+
+
 
 const trackNewAnnotations = () => {
     const annotations = annotation.state.getAllAnnotations();
@@ -542,11 +570,15 @@ window.addEventListener('keydown', (event) => {
     if (event.key === 'Backspace' || event.key === 'Delete') {
         const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
         const selectedUIDs = annotation.selection.getAnnotationsSelected();
-        selectedUIDs.forEach((uid) => {
-            annotation.state.removeAnnotation(uid);
-            annotation.selection.setAnnotationSelected(uid, false);
-        });
-        viewport.render()
+        if (selectedUIDs) {
+            selectedUIDs.forEach((uid) => {
+                
+                annotation.state.removeAnnotation(uid);
+                annotation.selection.setAnnotationSelected(uid, false);
+            });
+            viewport?.render()
+        }
+
     }
 });
 
@@ -576,7 +608,7 @@ window.addEventListener('keydown', (event) => {
 
             </div>
             <div class="flex-1 flex flex-col m-1">
-                <div class="flex justify-between items-center px-4 py-2 bg-neutral-950 border-b border-gray-800 m-1">
+                <div class="flex justify-between items-center px-4 py-2 bg-neutral-950 border-b border-gray-800">
                     <div class="font-semibold text-2xl">CRL <span class="text-gray-400 text-base">Midsagittal
                             view</span></div>
                     <button v-if="!isEditMode"
@@ -600,13 +632,14 @@ window.addEventListener('keydown', (event) => {
                 </div>
                 <template v-if="isEditMode">
                     <div class="">
-                        <ResetComponent :undo="undo" :redo="redo" :reset="clear" :undostack = "undostack" :redostack="redostack" />
+                        <ResetComponent :undo="undo" :redo="redo" :reset="clear" :undostack="undostack"
+                            :redostack="redostack" />
                         <ExitEditor @exit="isEditMode = false" @save="" @replace="" />
                     </div>
                 </template>
             </div>
         </div>
-        <div class="h-full w-[360px] bg-neutral-950 overflow-hidden">
+        <div class="h-full w-[360px] bg-neutral-950 overflow-hidden m-1">
             <SummarySidebar v-if="!isEditMode" :cineEvaluation="[
                 { label: 'Crown', level: 'normal' },
                 { label: 'Nasal Bone', level: 'normal' },

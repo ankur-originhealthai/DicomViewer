@@ -89,33 +89,15 @@ export function useLabelTool(
       bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
     });
 
-    toolGroup.setToolPassive(LabelTool.toolName);
-
-    const previousTool = prevToolRef.value;
-    if (previousTool !== null) {
-      if (
-        ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(previousTool) &&
-        isMagnifyVisible.value === false
-      ) {
-        isMagnifyVisible.value =(true);
-      } else if (
-        isMagnifyVisible.value &&
-        ['Pan', 'Zoom', 'WindowLevel'].includes(previousTool)
-      ) {
-        isMagnifyVisible.value = (false);
-      }
-    }
-
-    if (previousTool && previousTool !== LabelTool.toolName) {
-      toolGroup.setToolActive(previousTool, {
-        bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
-      });
-    }
+    toolGroup.setToolPassive('Label');
+    const container = cornerstoneElement.value;
+    if(container) container.style.cursor = 'auto';
+    
 
     viewport.render();
     labelInputVisible.value = false;
     labelInputValue.value = '';
-    prevToolRef.value = null;
+    //prevToolRef.value = null;
   };
 
   const onLabelCancel = () => {

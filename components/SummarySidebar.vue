@@ -77,7 +77,7 @@ function getMeasurementsSummary() {
         const stat = cachedStats[firstKey];
 
         if (stat.length != null) {
-          value = `${stat.length.toFixed(0)} mm`;
+          value = `${stat.length.toFixed(0)} ${stat.unit}`;
 
           // Handle optional M1, M2, M3
           const mValues = ['M1', 'M2', 'M3']
@@ -88,8 +88,8 @@ function getMeasurementsSummary() {
           stats = mValues.join(' / ');
         } else if (stat.angle != null) {
           value = `${stat.angle.toFixed(1)}°`;
-        } else if (stat.width && stat.height) {
-          value = `W: ${stat.width.toFixed(1)} × H: ${stat.height.toFixed(1)} mm`;
+        } else if (stat.area) {
+          value = `Area: ${stat.area.toFixed(1)} ${stat.areaUnit}`;
         }
       }
     }
@@ -100,7 +100,7 @@ function getMeasurementsSummary() {
   measurementList.value = summary;
 }
 
-let element: HTMLDivElement | null = null;
+let element : any = null;
 
 onMounted(() => {
   getMeasurementsSummary();

@@ -35,7 +35,6 @@ export function useMagnifier(
     const zoomCanvasSize = 200;
     const zoomHalfSize = zoomCanvasSize / (2 * zoomFactor.value);
 
-    // DPI handling
     zoomCanvas.width = zoomCanvasSize * dpr;
     zoomCanvas.height = zoomCanvasSize * dpr;
     zoomCanvas.style.width = `${zoomCanvasSize}px`;
@@ -55,7 +54,7 @@ export function useMagnifier(
     zoomCtx.clearRect(0, 0, zoomCanvasSize, zoomCanvasSize);
     zoomCtx.drawImage(mainCanvas, sx, sy, sWidth, sHeight, 0, 0, zoomCanvasSize, zoomCanvasSize);
 
-    // Crosshair
+    // Currsor for the zoomed canvas like +
     zoomCtx.strokeStyle = 'yellow';
     zoomCtx.lineWidth = 2;
     zoomCtx.beginPath();
@@ -87,10 +86,8 @@ export function useMagnifier(
       clonedSVG.style.top = '0';
       clonedSVG.style.left = '0';
       clonedSVG.style.pointerEvents = 'none';
-
       svgOverlayWrapper.appendChild(clonedSVG);
     }
-    //console.log(sx, sy)
     animationFrameRef = requestAnimationFrame(drawZoom);
   };
 
@@ -126,4 +123,3 @@ export function useMagnifier(
     cleanup();
   });
 }
-// 
