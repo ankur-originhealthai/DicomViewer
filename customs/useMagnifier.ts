@@ -75,7 +75,7 @@ export function useMagnifier(
       clonedSVG.innerHTML = currentAnnotationSVG.innerHTML;
 
       // const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      // g.setAttribute('transform', `scale(${1.268})`);
+      // g.setAttribute('transform', `transform(${1.268})`);
       // clonedChildren.forEach((child) => g.appendChild(child));
       // clonedSVG.appendChild(g);
 

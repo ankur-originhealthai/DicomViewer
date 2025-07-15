@@ -639,7 +639,7 @@ window.addEventListener('keydown', (event) => {
                 </template>
             </div>
         </div>
-        <div class="h-full w-[360px] overflow-hidden m-1">
+        <div class="h-full w-[365px] overflow-hidden m-1">
             <SummarySidebar v-if="!isEditMode" :cineEvaluation="[
                 { label: 'Crown', level: 'normal' },
                 { label: 'Nasal Bone', level: 'normal' },

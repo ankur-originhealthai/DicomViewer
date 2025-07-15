@@ -1,5 +1,5 @@
 <template>
-  <div class="w-[320px] bg-neutral-800 text-white border-l border-gray-800 p-4 overflow-y-auto">
+  <div class="h-[730px] bg-neutral-900 text-white border-l border-gray-800 p-4 overflow-y-auto">
     <h2 class="text-lg font-semibold mb-3">Measurements</h2>
 
     <div v-if="measurementList.length">
@@ -14,7 +14,7 @@
       <div
         v-for="(item, idx) in measurementList"
         :key="idx"
-        class="grid grid-cols-[100px_70px_1fr] text-sm py-1 items-center border-b border-gray-800"
+        class="grid grid-cols-[100px_70px_1fr] text-sm py-1 items-center border-b border-gray-800 p-2"
       >
         <div class="text-white font-medium">{{ item.label }}</div>
         <div class="text-green-700 font-semibold">{{ item.value }}</div>
@@ -24,13 +24,13 @@
 
     <div v-else class="text-gray-500 text-sm italic">No measurements available</div>
 
-    <h3 class="text-sm mt-6 mb-2 font-semibold text-gray-300">Overall Cine Evaluation</h3>
-    <ul class="space-y-2 text-sm text-gray-300">
+    <h3 class="text-sm mt-6 mb-2 font-semibold text-gray-300 bg-neutral-800 p-2">Overall Cine Evaluation</h3>
+    <ul class="space-y-2 text-sm text-gray-300 bg-neutral-800 p-2">
       <li
         v-for="(item, index) in cineEvaluation"
         :key="index"
-        class="flex items-center"
-        :class="{ 'text-yellow-500 font-semibold': item.level === 'warning' }"
+        class="flex items-center bg-neutral-900 p-1"
+        :class="{ 'text-yellow-500 bg-neutral-900 p-1 font-semibold': item.level === 'warning' }"
       >
         <span
           class="inline-block w-3 h-3 rounded-full mr-2"
