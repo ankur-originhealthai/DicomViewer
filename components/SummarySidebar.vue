@@ -25,7 +25,8 @@
     <div v-else class="text-gray-500 text-sm italic">No measurements available</div>
 
     <h3 class="text-sm mt-6 mb-2 font-semibold text-gray-300 bg-neutral-800 p-2">Overall Cine Evaluation</h3>
-    <ul class="space-y-2 text-sm text-gray-300 bg-neutral-800 p-2">
+    <p class="text-xs text-neutral-300 m-1">OVERALL QUALITY CRITERIA</p>
+    <ul class="space-y-2 text-sm text-gray-300 bg-neutral-800 p-2 px-3">
       <li
         v-for="(item, index) in cineEvaluation"
         :key="index"
@@ -33,7 +34,7 @@
         :class="{ 'text-yellow-500 bg-neutral-900 p-1 font-semibold': item.level === 'warning' }"
       >
         <span
-          class="inline-block w-3 h-3 rounded-full mr-2"
+          class="inline-block w-3 h-3 box-full mr-5"
           :class="{
             'bg-green-700': item.level === 'normal',
             'bg-yellow-500': item.level === 'warning'
