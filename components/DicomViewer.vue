@@ -200,7 +200,7 @@ watch(currentFile, async () => {
         annotation.config.style.setToolGroupToolStyles(toolGroupId, {
             global: {
                 lineWidth: "2",
-                lineDash: "4,2",
+                lineDash: "6,7",
                 color: "#FFC700",
                 colorHighlighted: "#FFC700",
                 colorSelected: "#FFC700",

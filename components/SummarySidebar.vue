@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <div v-else class="text-gray-500 text-sm italic">No measurements available</div>
+    <div v-else class="text-gray-500 text-sm italic">No measurements done</div>
 
     <h3 class="text-sm mt-6 mb-2 font-semibold text-gray-300 bg-neutral-800 p-2">Overall Cine Evaluation</h3>
     <p class="text-xs text-neutral-300 m-1">OVERALL QUALITY CRITERIA</p>

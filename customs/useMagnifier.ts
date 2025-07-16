@@ -22,7 +22,7 @@ export function useMagnifier(
     const svgOverlayWrapper = document.getElementById('zoom-svg-layer') as HTMLDivElement;
     if (!zoomCanvas || !svgOverlayWrapper) return;
 
-    const zoomCtx = zoomCanvas.getContext('2d');
+    const zoomCtx = zoomCanvas.getContext('2d', { alpha: false });
     if (!zoomCtx) return;
 
     const renderingEngine = renderingEngineRef.value;
@@ -79,9 +79,10 @@ export function useMagnifier(
       // clonedChildren.forEach((child) => g.appendChild(child));
       // clonedSVG.appendChild(g);
 
+
       clonedSVG.setAttribute('width', `${zoomCanvasSize}px`);
       clonedSVG.setAttribute('height', `${zoomCanvasSize}px`);
-      clonedSVG.setAttribute('viewBox', `${sx} ${sy} ${sWidth} ${sHeight}`);
+      clonedSVG.setAttribute('viewBox', `${sx/dpr} ${sy/dpr} ${sWidth/dpr} ${sHeight/dpr}`);
       clonedSVG.style.position = 'absolute';
       clonedSVG.style.top = '0';
       clonedSVG.style.left = '0';
