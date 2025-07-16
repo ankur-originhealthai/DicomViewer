@@ -3,12 +3,11 @@ import {
   annotation,
   LabelTool,
   Enums as csToolsEnums,
+  ToolGroupManager,
 } from "@cornerstonejs/tools";
 import { eventTarget } from "@cornerstonejs/core";
-
 const csEvents = csToolsEnums.Events;
 const measurementMap = new Map<string, string>();
-
 export function useLabelToolDrag(
   cornerstoneElement: Ref<HTMLElement | null>,
   renderingEngineRef: Ref<any>,
@@ -25,11 +24,9 @@ export function useLabelToolDrag(
   const secondClick = 2000;
   const isDragging = ref(false);
   const dragStart = ref<[number, number] | null>(null);
-
   const AddLabel = () => {
     const anns = annotation.state.getAllAnnotations();
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
-
     anns.forEach((ann: any) => {
       const toolName = ann?.metadata?.toolName;
       const labelEmpty = !ann?.data?.label || ann.data.label.trim() === "";
@@ -39,11 +36,9 @@ export function useLabelToolDrag(
         ann.data.label = label;
         ann.data.hasCustomLabel = true;
         ann.metadata.label = label;
-
         const mainUID = ann.annotationUID;
         const worldPos = ann.data.handles.points[1];
         const imageId = viewport.getCurrentImageId();
-
         const labelAnn = {
           metadata: {
             toolName: LabelTool.toolName,
@@ -60,41 +55,43 @@ export function useLabelToolDrag(
             },
           },
         };
-
-        const labelUID = annotation.state.addAnnotation(
-          labelAnn,
-          LabelTool.toolName
-        );
-
+        const labelUID = annotation.state.addAnnotation(labelAnn, LabelTool.toolName);
         measurementMap.set(mainUID, labelUID);
         viewport.render();
       }
     });
   };
-
   watch(
     cornerstoneElement,
-    (el, mouse, onCleanup) => {
+    (el, _, onCleanup) => {
       if (!el) return;
-
       const onMouseDown = (e: MouseEvent) => {
         dragStart.value = [e.clientX, e.clientY];
         isDragging.value = true;
       };
-
       const onMouseUp = (e: MouseEvent) => {
+        handlePointerUp(e.clientX, e.clientY);
+      };
+      const onTouchStart = (e: TouchEvent) => {
+        const t = e.touches[0];
+        if (!t) return;
+        dragStart.value = [t.clientX, t.clientY];
+        isDragging.value = true;
+      };
+      const onTouchEnd = (e: TouchEvent) => {
+        const t = e.changedTouches[0];
+        if (!t) return;
+        handlePointerUp(t.clientX, t.clientY);
+      };
+      const handlePointerUp = (clientX: number, clientY: number) => {
         const now = Date.now();
         const [startX, startY] = dragStart.value || [0, 0];
-        const distance = Math.sqrt(
-          (e.clientX - startX) ** 2 + (e.clientY - startY) ** 2
-        );
-
+        const distance = Math.sqrt((clientX - startX) ** 2 + (clientY - startY) ** 2);
         if (isDragging.value && distance > 5) {
           AddLabel();
           resetState();
           return;
         }
-
         if (clickCount === 0) {
           lastClickTime = now;
           clickCount = 1;
@@ -108,11 +105,9 @@ export function useLabelToolDrag(
             clickCount = 1;
           }
         }
-
         isDragging.value = false;
         dragStart.value = null;
       };
-
       const resetState = () => {
         currentCustomLabel.value = null;
         customlabel.value = false;
@@ -120,19 +115,25 @@ export function useLabelToolDrag(
         isDragging.value = false;
         dragStart.value = null;
       };
-
       el.addEventListener("mousedown", onMouseDown);
       el.addEventListener("mouseup", onMouseUp);
-
+      el.addEventListener("touchstart", onTouchStart, { passive: true });
+      el.addEventListener("touchend", onTouchEnd, { passive: true });
       onCleanup(() => {
         el.removeEventListener("mousedown", onMouseDown);
         el.removeEventListener("mouseup", onMouseUp);
+        el.removeEventListener("touchstart", onTouchStart);
+        el.removeEventListener("touchend", onTouchEnd);
       });
     },
     { immediate: true }
   );
-
   onMounted(() => {
+    const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    if (toolGroup && !toolGroup.getToolInstance(LabelTool.toolName)) {
+      toolGroup.addTool(LabelTool.toolName);
+      toolGroup.setToolEnabled(LabelTool.toolName);
+    }
     eventTarget.addEventListener(csEvents.ANNOTATION_MODIFIED, (evt: any) => {
       const changedAnn = evt.detail.annotation;
       const changedUID = changedAnn.annotationUID;
@@ -142,29 +143,11 @@ export function useLabelToolDrag(
         const labelAnn = annotation.state.getAnnotation(labelUID);
         const newPos = changedAnn.data.handles?.points?.[1];
         labelAnn.data.handles.points[0] = [...newPos] as any;
-        if (!viewport) return;
         viewport?.render();
-      } //else if ([...measurementMap.values()].includes(changedUID)) {
-      //   const mainUID = [...measurementMap.entries()].find(
-      //     ([annotationUID, labelUID]) => labelUID === changedUID
-      //   )?.[0];
-
-      //   const mainAnn = mainUID
-      //     ? annotation.state.getAnnotation(mainUID)
-      //     : null;
-      //   const newPos = changedAnn.data.handles?.points?.[0];
-      //   mainAnn.data.handles.points[1] = [...newPos] as [
-      //     number,
-      //     number,
-      //     number
-      //   ];
-      //   viewport.render();
-      // }
+      }
     });
   });
-
   return {
     prevTool: prevToolRef,
-    
   };
 }
