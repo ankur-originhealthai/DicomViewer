@@ -1,7 +1,6 @@
 import { watchEffect, onUnmounted } from 'vue';
 import type { Ref } from 'vue';
 import type { StackViewport } from '@cornerstonejs/core';
-
 export function useMagnifier(
   isMagnifyVisible: Ref<boolean>,
   elementRef: Ref<HTMLDivElement | null>,
@@ -11,24 +10,18 @@ export function useMagnifier(
 ) {
   let animationFrameRef: number | null = null;
   let lastMouseEvent: MouseEvent | null = null;
-
   const drawZoom = () => {
     if (!lastMouseEvent) return;
-
     const container = elementRef.value;
     if (!container) return;
-
     const zoomCanvas = document.getElementById('zoom-canvas') as HTMLCanvasElement;
     const svgOverlayWrapper = document.getElementById('zoom-svg-layer') as HTMLDivElement;
     if (!zoomCanvas || !svgOverlayWrapper) return;
-
-    const zoomCtx = zoomCanvas.getContext('2d', { alpha: false });
+    const zoomCtx = zoomCanvas.getContext('2d');
     if (!zoomCtx) return;
-
     const renderingEngine = renderingEngineRef.value;
     const viewport = renderingEngine?.getViewport(viewportId) as StackViewport;
     if (!viewport) return;
-
     const mainCanvas = viewport.getCanvas();
     const canvasRect = mainCanvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
@@ -42,19 +35,15 @@ export function useMagnifier(
     zoomCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     zoomCtx.imageSmoothingEnabled = true;
     zoomCtx.imageSmoothingQuality = 'high';
-
     const canvasX = (lastMouseEvent.clientX - canvasRect.left) * dpr;
     const canvasY = (lastMouseEvent.clientY - canvasRect.top) * dpr;
-
     const sx = Math.min(Math.max(canvasX - zoomHalfSize, 0), mainCanvas.width - 2 * zoomHalfSize);
     const sy = Math.min(Math.max(canvasY - zoomHalfSize, 0), mainCanvas.height - 2 * zoomHalfSize);
     const sWidth = 2 * zoomHalfSize;
     const sHeight = 2 * zoomHalfSize;
-
     zoomCtx.clearRect(0, 0, zoomCanvasSize, zoomCanvasSize);
     zoomCtx.drawImage(mainCanvas, sx, sy, sWidth, sHeight, 0, 0, zoomCanvasSize, zoomCanvasSize);
 
-    // Currsor for the zoomed canvas like +
     zoomCtx.strokeStyle = 'yellow';
     zoomCtx.lineWidth = 2;
     zoomCtx.beginPath();
@@ -65,61 +54,65 @@ export function useMagnifier(
     zoomCtx.moveTo(zoomCanvasSize / 2, zoomCanvasSize / 2 - 5);
     zoomCtx.lineTo(zoomCanvasSize / 2, zoomCanvasSize / 2 + 5);
     zoomCtx.stroke();
-    //console.log(zoomCanvasSize / 2 - 5, zoomCanvasSize / 2)
 
     svgOverlayWrapper.innerHTML = '';
-    const currentAnnotationSVG = container.querySelector('svg');
-    if (currentAnnotationSVG) {
-      const clonedSVG = currentAnnotationSVG.cloneNode(true) as SVGSVGElement;
-      const clonedChildren = Array.from(clonedSVG.childNodes);
-      clonedSVG.innerHTML = currentAnnotationSVG.innerHTML;
-
-      // const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      // g.setAttribute('transform', `transform(${1.268})`);
-      // clonedChildren.forEach((child) => g.appendChild(child));
-      // clonedSVG.appendChild(g);
-
-
-      clonedSVG.setAttribute('width', `${zoomCanvasSize}px`);
-      clonedSVG.setAttribute('height', `${zoomCanvasSize}px`);
-      clonedSVG.setAttribute('viewBox', `${sx/dpr} ${sy/dpr} ${sWidth/dpr} ${sHeight/dpr}`);
-      clonedSVG.style.position = 'absolute';
-      clonedSVG.style.top = '0';
-      clonedSVG.style.left = '0';
-      clonedSVG.style.pointerEvents = 'none';
-      svgOverlayWrapper.appendChild(clonedSVG);
+    const originalSvg = container.querySelector('svg');
+    if (originalSvg) {
+      const clonedSvg = originalSvg.cloneNode(true) as SVGSVGElement;
+      clonedSvg.setAttribute('width', `${zoomCanvasSize}px`);
+      clonedSvg.setAttribute('height', `${zoomCanvasSize}px`);
+      clonedSvg.setAttribute('viewBox', `${sx / dpr} ${sy / dpr} ${sWidth / dpr} ${sHeight / dpr}`);
+      clonedSvg.style.position = 'absolute';
+      clonedSvg.style.top = '0';
+      clonedSvg.style.left = '0';
+      clonedSvg.style.pointerEvents = 'none';
+      clonedSvg.querySelectorAll('[stroke-width]').forEach((el) => {
+        const strokeWidth = el.getAttribute('stroke-width');
+        if (strokeWidth) {
+          const scaled = parseFloat(strokeWidth) * zoomFactor.value;
+          el.setAttribute('stroke-width', scaled.toString());
+        }
+      });
+      svgOverlayWrapper.appendChild(clonedSvg);
     }
     animationFrameRef = requestAnimationFrame(drawZoom);
   };
-
   const handleMouseMove = (e: MouseEvent) => {
     lastMouseEvent = e;
     if (animationFrameRef === null) {
       animationFrameRef = requestAnimationFrame(drawZoom);
     }
   };
-
+  const handleTouchMove = (e: TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    lastMouseEvent = new MouseEvent('mousemove', {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    });
+    if (animationFrameRef === null) {
+      animationFrameRef = requestAnimationFrame(drawZoom);
+    }
+  };
   const cleanup = () => {
     if (elementRef.value) {
       elementRef.value.removeEventListener('mousemove', handleMouseMove);
+      elementRef.value.removeEventListener('touchmove', handleTouchMove);
     }
     if (animationFrameRef !== null) {
       cancelAnimationFrame(animationFrameRef);
       animationFrameRef = null;
     }
   };
-
   watchEffect(() => {
     if (!isMagnifyVisible.value) {
       cleanup();
       return;
     }
-
     if (!elementRef.value || !renderingEngineRef.value) return;
-
     elementRef.value.addEventListener('mousemove', handleMouseMove);
+    elementRef.value.addEventListener('touchmove', handleTouchMove, { passive: true });
   });
-
   onUnmounted(() => {
     cleanup();
   });
