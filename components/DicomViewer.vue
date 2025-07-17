@@ -41,7 +41,7 @@ import { customangletool } from "~/customs/CustomAngleTool";
 import { customellipse } from "~/customs/CustomEllipseTool";
 import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
 import {customCobbAngleTool} from "~/customs/CustomCobbAngleTool"
-
+import {custombidirectional} from "~/customs/CustomBiDirectionalTool"
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
 const toolGroupId = "myToolGroup";
@@ -196,7 +196,8 @@ watch(currentFile, async () => {
             customangletool,
             LabelTool,
             CustomSplineROITool,
-            customCobbAngleTool
+            customCobbAngleTool,
+            custombidirectional
         ].forEach(addTool);
 
         const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
@@ -212,7 +213,8 @@ watch(currentFile, async () => {
             customangletool,
             LabelTool,
             CustomSplineROITool,
-            customCobbAngleTool
+            customCobbAngleTool,
+            custombidirectional
         ].forEach((Tool) => {
             toolGroup.addTool(Tool.toolName);
         });
@@ -325,7 +327,7 @@ const handleSpeedChange = (num: number) => {
 const handleToolChange = (selectedToolName: string) => {
     customlabel.value = false;
     prevToolRef.value = selectedToolName;
-    if (["Length", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle"].includes(selectedToolName) && isMagnifyVisible.value === false) {
+    if (["Length", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle", "Bidirectional"].includes(selectedToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = true;
     } else if (
         isMagnifyVisible &&
@@ -346,7 +348,8 @@ const handleToolChange = (selectedToolName: string) => {
         customangletool.toolName,
         LabelTool.toolName,
         CustomSplineROITool.toolName,
-        customCobbAngleTool.toolName
+        customCobbAngleTool.toolName,
+        custombidirectional.toolName
     ];
 
     allTools.forEach((toolName) => {
@@ -373,7 +376,7 @@ const handleToolChange2 = (selectedToolName: string) => {
     const actualToolName = customTool ? customTool.tool : selectedToolName;
     prevToolRef.value = actualToolName;
 
-    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle"].includes(actualToolName) && isMagnifyVisible.value === false) {
+    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle", "Bidirectional"].includes(actualToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = (true);
     } else if (
         isMagnifyVisible &&
@@ -392,7 +395,8 @@ const handleToolChange2 = (selectedToolName: string) => {
         customangletool.toolName,
         LabelTool.toolName,
         CustomSplineROITool.toolName,
-        customCobbAngleTool.toolName
+        customCobbAngleTool.toolName,
+        custombidirectional.toolName
     ];
     allTools.forEach((toolName) => {
         if (toolName === actualToolName) {
@@ -404,7 +408,7 @@ const handleToolChange2 = (selectedToolName: string) => {
         }
     });
     //elementRef.value.style.cursor = 'auto'
-    isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label', 'SplineROI', 'CobbAngle'].includes(actualToolName);
+    isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label', 'SplineROI', 'CobbAngle', 'Bidirectional'].includes(actualToolName);
     prevToolRef.value = actualToolName;
     if (!toolusedonframe.value.includes(actualToolName)) {
         toolusedonframe.value.push(actualToolName);

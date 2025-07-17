@@ -25,12 +25,16 @@ export function useLabelToolDrag(
   const isDragging = ref(false);
   const dragStart = ref<[number, number] | null>(null);
   const AddLabel = () => {
+   
     const anns = annotation.state.getAllAnnotations();
+    if(customlabel.value === false){
+      return
+    }
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     anns.forEach((ann: any) => {
       const toolName = ann?.metadata?.toolName;
       const labelEmpty = !ann?.data?.label || ann.data.label.trim() === "";
-      const isAllow = ["Length", "Angle", "EllipticalROI"].includes(toolName);
+      const isAllow = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label', 'SplineROI', 'CobbAngle', 'Bidirectional'].includes(toolName);
       if (isAllow && labelEmpty && !ann.data.hasCustomLabel) {
         const label = currentCustomLabel.value || "";
         ann.data.label = label;

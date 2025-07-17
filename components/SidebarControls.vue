@@ -167,12 +167,16 @@
         </button>
 
         <button @click="() => handleToolChange('SplineROI')" class="tool-btn">
-          <Icon name="mdi:spline" class="w-2 h-4" />
+          <Icon name="mdi:spine" class="w-2 h-4" />
           SplineROI
         </button>
         <button @click="() => handleToolChange('CobbAngle')" class="tool-btn">
-          <Icon name="mdi:spline" class="w-2 h-4" />
+          <Icon name="mdi:angle" class="w-2 h-4" />
           CobbAngle
+        </button>
+        <button @click="() => handleToolChange('Bidirectional')" class="tool-btn">
+          <Icon name="mdi:spline" class="w-2 h-4" />
+         BiDirectional
         </button>
 
         

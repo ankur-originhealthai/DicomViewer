@@ -1195,6 +1195,36 @@ function findOpenUShapedContourVectorToPeak(
     return toFurthestWorld;
 }
 
+function defaultGetTextLines4(data, targetId) {
+  const { cachedStats, label } = data;
+  const { length, width, unit } = cachedStats[targetId];
+  const textLines = [];
+  if (label) {
+    textLines.push(label);
+  }
+  if (length === void 0) {
+    return textLines;
+  }
+  textLines.push(`L: ${roundNumber2(length)} ${unit || unit}`, `W: ${roundNumber2(width)} ${unit}`);
+  return textLines;
+}
+
+function roundNumber2(value, precision = 2) {
+  if (Array.isArray(value)) {
+    return value.map((v) => roundNumber2(v, precision)).join(", ");
+  }
+  if (value === void 0 || value === null || value === "") {
+    return "NaN";
+  }
+  value = Number(value);
+  const absValue = Math.abs(value);
+  if (absValue < 1e-4) {
+    return `${value}`;
+  }
+  const fixedPrecision = absValue >= 100 ? precision - 2 : absValue >= 10 ? precision - 1 : absValue >= 1 ? precision : absValue >= 0.1 ? precision + 1 : absValue >= 0.01 ? precision + 2 : absValue >= 1e-3 ? precision + 3 : precision + 4;
+  return value.toFixed(fixedPrecision);
+}
+
 const pointsAreWithinCloseContourProximity2 = pointsAreWithinCloseContourProximity;
 const drawCircle_default = drawCircle;
 const drawEllipseSvg_default = drawEllipseByCoordinates;
@@ -1216,7 +1246,7 @@ export {
     ContourSegmentRenderAnnotationInstance, defaultGetTextLines3, freeHandROIHydration, pointsAreWithinCloseContourProximity2,
     calculateUShapeContourVectorToPeakIfNotPresent, drawHandle_default, drawHandleDeleteCircle, drawMinusLine, getHash_default,
     setAttributesIfNecessary_default, setNewAttributesIfValid_default, convertToPolylineArray,
-    updateBounds, getAABB, getArea, distance, distance3, _createDeleteButton,
+    updateBounds, getAABB, getArea, distance, distance3, _createDeleteButton,defaultGetTextLines4
 }
 
 export function addParamIfMissing(input: string): string {
