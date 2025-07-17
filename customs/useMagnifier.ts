@@ -69,7 +69,7 @@ export function useMagnifier(
       clonedSvg.querySelectorAll('[stroke-width]').forEach((el) => {
         const strokeWidth = el.getAttribute('stroke-width');
         if (strokeWidth) {
-          const scaled = parseFloat(strokeWidth) * zoomFactor.value;
+          const scaled = parseFloat(strokeWidth) ;
           el.setAttribute('stroke-width', scaled.toString());
         }
       });

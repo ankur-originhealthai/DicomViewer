@@ -58,6 +58,7 @@ const measurementList = ref<{ label: string; value: string; stats: string }[]>([
 
 function getMeasurementsSummary() {
   const annotations = annotation.state.getAllAnnotations();
+  console.log(annotations)
   const summary: { label: string; value: string; stats: string }[] = [];
 
   annotations.forEach((ann: any) => {

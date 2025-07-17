@@ -8,7 +8,7 @@ import {
     StackViewport,
     init as cornerstoneCoreInit,
     eventTarget,
-    
+
 } from "@cornerstonejs/core";
 import { annotation } from '@cornerstonejs/tools'
 import { ref } from 'vue'
@@ -25,7 +25,7 @@ import {
     EllipticalROITool,
     AngleTool,
     LabelTool,
-   
+
 
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
@@ -36,6 +36,11 @@ import LabelInputOverlay from '~/components/LabelInputOverlay.vue'
 import { captureDicom } from "./CaptureDicom.vue";
 import { init as dicomLoaderInit, wadouri } from "@cornerstonejs/dicom-image-loader";
 import { useLabelToolDrag } from "~/customs/useLabelToolDrag";
+import { CustomLengthTool } from "~/customs/CustomLengthTool";
+import { customangletool } from "~/customs/CustomAngleTool";
+import { customellipse } from "~/customs/CustomEllipseTool";
+import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
+import {customCobbAngleTool} from "~/customs/CustomCobbAngleTool"
 
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
@@ -165,6 +170,17 @@ watch(currentFile, async () => {
             await viewport.setStack([baseImageId]);
         }
         viewport.setImageIdIndex(0);
+        metaData.addProvider((type, baseImageId) => {
+            if (type === 'imagePlaneModule') {
+                return {
+                    rowPixelSpacing: 1,
+                    columnPixelSpacing: 1,
+                    imagePositionPatient: [0, 0, 0],
+                    rowCosines: [1, 0, 0],
+                    columnCosines: [0, 1, 0],
+                };
+            }
+        }, 99);
         viewport.render();
         const toolgrp = ToolGroupManager.getToolGroup(toolGroupId);
         if (toolgrp) {
@@ -174,11 +190,13 @@ watch(currentFile, async () => {
             PanTool,
             ZoomTool,
             WindowLevelTool,
-            LengthTool,
+            CustomLengthTool,
             RectangleROITool,
-            EllipticalROITool,
-            AngleTool,
+            customellipse,
+            customangletool,
             LabelTool,
+            CustomSplineROITool,
+            customCobbAngleTool
         ].forEach(addTool);
 
         const toolGroup = ToolGroupManager.createToolGroup(toolGroupId);
@@ -188,11 +206,13 @@ watch(currentFile, async () => {
             PanTool,
             ZoomTool,
             WindowLevelTool,
-            LengthTool,
+            CustomLengthTool,
             RectangleROITool,
-            EllipticalROITool,
-            AngleTool,
+            customellipse,
+            customangletool,
             LabelTool,
+            CustomSplineROITool,
+            customCobbAngleTool
         ].forEach((Tool) => {
             toolGroup.addTool(Tool.toolName);
         });
@@ -200,7 +220,7 @@ watch(currentFile, async () => {
         annotation.config.style.setToolGroupToolStyles(toolGroupId, {
             global: {
                 lineWidth: "2",
-                lineDash: "6,7",
+                lineDash: "7,8",
                 color: "#FFC700",
                 colorHighlighted: "#FFC700",
                 colorSelected: "#FFC700",
@@ -305,7 +325,7 @@ const handleSpeedChange = (num: number) => {
 const handleToolChange = (selectedToolName: string) => {
     customlabel.value = false;
     prevToolRef.value = selectedToolName;
-    if (["Length", "EllipticalROI", "Angle", "Label"].includes(selectedToolName) && isMagnifyVisible.value === false) {
+    if (["Length", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle"].includes(selectedToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = true;
     } else if (
         isMagnifyVisible &&
@@ -320,11 +340,13 @@ const handleToolChange = (selectedToolName: string) => {
         PanTool.toolName,
         ZoomTool.toolName,
         WindowLevelTool.toolName,
-        LengthTool.toolName,
+        CustomLengthTool.toolName,
         RectangleROITool.toolName,
-        EllipticalROITool.toolName,
-        AngleTool.toolName,
+        customellipse.toolName,
+        customangletool.toolName,
         LabelTool.toolName,
+        CustomSplineROITool.toolName,
+        customCobbAngleTool.toolName
     ];
 
     allTools.forEach((toolName) => {
@@ -351,7 +373,7 @@ const handleToolChange2 = (selectedToolName: string) => {
     const actualToolName = customTool ? customTool.tool : selectedToolName;
     prevToolRef.value = actualToolName;
 
-    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label"].includes(actualToolName) && isMagnifyVisible.value === false) {
+    if (["Length", "RectangleROI", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle"].includes(actualToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = (true);
     } else if (
         isMagnifyVisible &&
@@ -364,11 +386,13 @@ const handleToolChange2 = (selectedToolName: string) => {
         PanTool.toolName,
         ZoomTool.toolName,
         WindowLevelTool.toolName,
-        LengthTool.toolName,
+        CustomLengthTool.toolName,
         RectangleROITool.toolName,
-        EllipticalROITool.toolName,
-        AngleTool.toolName,
+        customellipse.toolName,
+        customangletool.toolName,
         LabelTool.toolName,
+        CustomSplineROITool.toolName,
+        customCobbAngleTool.toolName
     ];
     allTools.forEach((toolName) => {
         if (toolName === actualToolName) {
@@ -380,7 +404,7 @@ const handleToolChange2 = (selectedToolName: string) => {
         }
     });
     //elementRef.value.style.cursor = 'auto'
-    isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label'].includes(actualToolName);
+    isMagnifyVisible.value = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label', 'SplineROI', 'CobbAngle'].includes(actualToolName);
     prevToolRef.value = actualToolName;
     if (!toolusedonframe.value.includes(actualToolName)) {
         toolusedonframe.value.push(actualToolName);
@@ -572,7 +596,7 @@ window.addEventListener('keydown', (event) => {
         const selectedUIDs = annotation.selection.getAnnotationsSelected();
         if (selectedUIDs) {
             selectedUIDs.forEach((uid) => {
-                
+
                 annotation.state.removeAnnotation(uid);
                 annotation.selection.setAnnotationSelected(uid, false);
             });

@@ -1,35 +1,44 @@
-import { ref, onMounted, onUnmounted, watch } from 'vue';
-import type { Ref } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from "vue";
+import type { Ref } from "vue";
 
 import {
   annotation,
   LabelTool,
   ToolGroupManager,
   Enums as csToolsEnums,
-} from '@cornerstonejs/tools';
-import type { StackViewport } from '@cornerstonejs/core';
+} from "@cornerstonejs/tools";
+import type { StackViewport } from "@cornerstonejs/core";
 
 export function useLabelTool(
   cornerstoneElement: Ref<HTMLElement | null>,
   renderingEngineRef: Ref<any>,
   viewportId: string,
   toolGroupId: string,
-  isMagnifyVisible: Ref<boolean>,
+  isMagnifyVisible: Ref<boolean>
 ) {
   const labelInputVisible = ref(false);
   const labelInputCoords = ref({ x: 0, y: 0 });
-  const labelInputValue = ref('');
+  const labelInputValue = ref("");
   const currentWorldPosRef = ref<number[] | null>(null);
   const currentImageIdRef = ref<string | null>(null);
   const prevToolRef = ref<string | null>(null);
 
   const handler = (event: MouseEvent) => {
+    
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    const viewport = renderingEngineRef.value?.getViewport(viewportId) as StackViewport;
+    const viewport = renderingEngineRef.value?.getViewport(
+      viewportId
+    ) as StackViewport;
     if (!viewport || !toolGroup) return;
 
+    //const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+    // const activeTool = toolGroup?.getCurrentActivePrimaryToolName()
+    // if(activeTool === 'SplineROI'){
+    //   return
+    // }
+
     if (isMagnifyVisible.value) {
-      isMagnifyVisible.value = (false);
+      isMagnifyVisible.value = false;
     }
 
     const canvas = viewport.getCanvas();
@@ -47,24 +56,35 @@ export function useLabelTool(
     currentImageIdRef.value = imageId;
 
     labelInputCoords.value = { x: event.clientX, y: event.clientY };
-    labelInputValue.value = '';
+    labelInputValue.value = "";
     labelInputVisible.value = true;
   };
 
-  watch(cornerstoneElement, (el, _, onCleanup) => {
-    if (!el) return;
-    el.addEventListener('dblclick', handler);
-    onCleanup(() => {
-      el.removeEventListener('dblclick', handler);
-    });
-  }, { immediate: true });
+  watch(
+    cornerstoneElement,
+    (el, _, onCleanup) => {
+      if (!el) return;
+      el.addEventListener("dblclick", handler);
+      onCleanup(() => {
+        el.removeEventListener("dblclick", handler);
+      });
+    },
+    { immediate: true }
+  );
 
   const onLabelSubmit = () => {
     const worldPos = currentWorldPosRef.value;
     const imageId = currentImageIdRef.value;
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    if (!labelInputValue.value || !imageId || !worldPos || !viewport || !toolGroup) return;
+    if (
+      !labelInputValue.value ||
+      !imageId ||
+      !worldPos ||
+      !viewport ||
+      !toolGroup
+    )
+      return;
 
     annotation.state.addAnnotation(
       {
@@ -81,6 +101,11 @@ export function useLabelTool(
             activeHandleIndex: null,
           },
         },
+        highlighted: true,
+        invalidated: false,
+        isLocked: false,
+        isSelected: true,
+        isVisible: true,
       },
       LabelTool.toolName
     );
@@ -89,20 +114,19 @@ export function useLabelTool(
       bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
     });
 
-    toolGroup.setToolPassive('Label');
+    toolGroup.setToolPassive("Label");
     const container = cornerstoneElement.value;
-    if(container) container.style.cursor = 'auto';
-    
+    if (container) container.style.cursor = "auto";
 
     viewport.render();
     labelInputVisible.value = false;
-    labelInputValue.value = '';
+    labelInputValue.value = "";
     //prevToolRef.value = null;
   };
 
   const onLabelCancel = () => {
-    if (prevToolRef.value === 'Magnifier') {
-      isMagnifyVisible.value = (true);
+    if (prevToolRef.value === "Magnifier") {
+      isMagnifyVisible.value = true;
     }
 
     labelInputVisible.value = false;

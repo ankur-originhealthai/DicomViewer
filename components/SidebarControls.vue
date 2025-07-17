@@ -165,6 +165,17 @@
           <Icon name="mdi:magnify-plus" class="w-2 h-4" />
           Zoom
         </button>
+
+        <button @click="() => handleToolChange('SplineROI')" class="tool-btn">
+          <Icon name="mdi:spline" class="w-2 h-4" />
+          SplineROI
+        </button>
+        <button @click="() => handleToolChange('CobbAngle')" class="tool-btn">
+          <Icon name="mdi:spline" class="w-2 h-4" />
+          CobbAngle
+        </button>
+
+        
       </div>
     </div>
 

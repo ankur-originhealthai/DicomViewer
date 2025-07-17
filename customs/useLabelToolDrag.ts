@@ -37,8 +37,15 @@ export function useLabelToolDrag(
         ann.data.hasCustomLabel = true;
         ann.metadata.label = label;
         const mainUID = ann.annotationUID;
-        const worldPos = ann.data.handles.points[1];
+        const p1 = ann.data.handles.points[1];
+        const worldPos = [
+          p1[0] + 12.0,
+          p1[1] - 4.0,
+          p1[2] 
+        ];
+
         const imageId = viewport.getCurrentImageId();
+        //console.log(worldPos);
         const labelAnn = {
           metadata: {
             toolName: LabelTool.toolName,
@@ -50,12 +57,20 @@ export function useLabelToolDrag(
             label,
             text: label,
             handles: {
-              points: [worldPos],
+              points: [worldPos]as any,
               activeHandleIndex: null,
             },
           },
+          highlighted: true,
+        invalidated: false,
+        isLocked: false,
+        isSelected: true,
+        isVisible: true,
         };
-        const labelUID = annotation.state.addAnnotation(labelAnn, LabelTool.toolName);
+        const labelUID = annotation.state.addAnnotation(
+          labelAnn,
+          LabelTool.toolName
+        );
         measurementMap.set(mainUID, labelUID);
         viewport.render();
       }
@@ -86,7 +101,9 @@ export function useLabelToolDrag(
       const handlePointerUp = (clientX: number, clientY: number) => {
         const now = Date.now();
         const [startX, startY] = dragStart.value || [0, 0];
-        const distance = Math.sqrt((clientX - startX) ** 2 + (clientY - startY) ** 2);
+        const distance = Math.sqrt(
+          (clientX - startX) ** 2 + (clientY - startY) ** 2
+        );
         if (isDragging.value && distance > 5) {
           AddLabel();
           resetState();
@@ -136,12 +153,18 @@ export function useLabelToolDrag(
     }
     eventTarget.addEventListener(csEvents.ANNOTATION_MODIFIED, (evt: any) => {
       const changedAnn = evt.detail.annotation;
+      //console.log(changedAnn)
       const changedUID = changedAnn.annotationUID;
       const viewport = renderingEngineRef.value?.getViewport(viewportId);
       if (measurementMap.has(changedUID)) {
         const labelUID = measurementMap.get(changedUID)!;
         const labelAnn = annotation.state.getAnnotation(labelUID);
-        const newPos = changedAnn.data.handles?.points?.[1];
+        const p1 = changedAnn.data.handles?.points?.[1];
+        const newPos = [
+          p1[0] + 12.0,
+          p1[1] - 4.0,
+          p1[2] ,
+        ];
         labelAnn.data.handles.points[0] = [...newPos] as any;
         viewport?.render();
       }
