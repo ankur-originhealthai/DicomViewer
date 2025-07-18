@@ -169,7 +169,10 @@ export function useLabelToolDrag(
           p1[1] - 4.0,
           p1[2] ,
         ];
-        labelAnn.data.handles.points[0] = [...newPos] as any;
+        if(labelAnn?.data?.handles?.points){
+          labelAnn.data.handles.points[0] = [...newPos] as any;
+        }
+        
         viewport?.render();
       }
     });

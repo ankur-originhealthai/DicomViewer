@@ -168,10 +168,11 @@ export class customellipse extends EllipticalROITool {
             }
             //const tagName = getTagWithPosition(ExtendedMetadata, this.getToolName(), enabledElement);
             //const tagPosition = getTagPosition(ExtendedMetadata, this.getToolName(), enabledElement);
-            const targetId = this.getTargetId(viewport)
-            const label = data.cachedStats[targetId]?.area.toFixed(3)
+            const targetId = this.getTargetId(viewport);
+            if(!data.cachedStats) return
+            const label = Math.round(data.cachedStats[targetId]?.area)
             const customTextBoxPosition = viewport.worldToCanvas(data.handles?.points?.[2] ?? [0, 0, 0]);
-            const dataArea = 'Area:' + label + data.cachedStats[targetId]?.areaUnit
+            const dataArea = 'Area:' + (label) + data.cachedStats[targetId]?.areaUnit
             // Only draw the tag name box
             const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID, '2', [dataArea ], customTextBoxPosition, canvasCoordinates, options);
             if (boundingBox && data.handles?.textBox) {

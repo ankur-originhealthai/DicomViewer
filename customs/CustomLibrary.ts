@@ -903,7 +903,8 @@ function _renderStats(annotation: SplineROIAnnotation,
     const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[0]);
     //if (!('tagName' in metadata) || typeof metadata.tagName != 'string') return;
     const customTextBoxLabel = '';
-    drawLinkedTextBox_default(svgDrawingHelper, annotation.annotationUID ?? "", textBoxLabelUID, [customTextBoxLabel], customTextBoxPositionLabel, canvasCoordinates, textboxStyle);
+    
+    drawLinkedTextBox_default(svgDrawingHelper, annotation.annotationUID ?? "", textBoxLabelUID, [customTextBoxLabel], textBoxPosition, canvasCoordinates, textboxStyle);
     if (!data.spline.instance.closed || !textboxStyle.visibility) {
         return;
     }

@@ -204,11 +204,12 @@ export class CustomSplineROITool extends SplineROITool {
     const toolName = this.getToolName();
     const metadata = annotation.metadata as ExtendedMetadata;
     const renderStatsParams = { enabledElement, toolName };
-
+    
 
     // Only render the tag name
-    const areaSpline : number= data.cachedStats[targetId].area as number
-    const textLines = [metadata.tagName ?? "Area:" + areaSpline + data.cachedStats[targetId].areaUnit];
+    if(data.cachedStats){
+      const areaSpline : number= Math.round(data.cachedStats[targetId].area) 
+    const textLines = [metadata.tagName ?? "Area:" + areaSpline + data?.cachedStats[targetId].areaUnit];
     if(!textLines) return false;
     _renderStats(annotation as any, viewport, svgDrawingHelper, annotationStyle.textbox as any, targetId, textLines, [renderStatsParams]);
     if (this.fireChangeOnUpdate?.annotationUID === annotationUID) {
@@ -219,6 +220,8 @@ export class CustomSplineROITool extends SplineROITool {
             contourHoleProcessingEnabled: false
         };
     }
+    }
+    
     //EventBus.$emit('updatedMeasurements', annotation.annotationUID);
     annotation.invalidated = false;
     return true;

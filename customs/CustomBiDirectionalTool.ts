@@ -10,7 +10,7 @@ import {
   VolumeViewport,
   type Types,
 } from "@cornerstonejs/core";
-import type { Point2, Point3 } from "@cornerstonejs/core/types";
+import type { IEnabledElement, Point2, Point3 } from "@cornerstonejs/core/types";
 import {
   defaultGetTextLines4,
   drawHandles_default,
@@ -42,7 +42,7 @@ export class custombidirectional extends BidirectionalTool {
     super(toolProps, defaultToolProps);
   }
 
-  override renderAnnotation = (enabledElement, svgDrawingHelper) => {
+  override renderAnnotation = (enabledElement : IEnabledElement, svgDrawingHelper: SVGDrawingHelper) => {
     let renderStatus = true;
     const { viewport } = enabledElement;
     const { element } = viewport;
@@ -188,7 +188,7 @@ export class custombidirectional extends BidirectionalTool {
           viewport.canvasToWorld(canvasTextBoxCoords);
       }
       const textBoxPosition = viewport.worldToCanvas(
-        data.handles.textBox.worldPosition
+        data.handles?.points[0]
       );
       const textBoxUID = "1";
       const boundingBox = drawLinkedTextBox_default(

@@ -122,8 +122,12 @@ export class customCobbAngleTool extends CobbAngleTool {
         let { viewport, targetId, mid2, arc1Angle, arc2Angle, arc1Start, arc1End, arc2Start, arc2End } = renderAllAnnotationsParams;
         const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[0] as Point3);
         const textBoxLabelUID = "cobbAngleTextLabel";
-        const customTextBoxLabel = tagName || "Angle:" + data.cachedStats[targetId]?.angle + "°";
-        
+        if(!data.cachedStats ) return
+        const angleData =  (data?.cachedStats[targetId]?.angle as number).toFixed(2)
+        const customTextBoxLabel = tagName || "Angle:" + angleData + "°";
+         const textBoxPosition = viewport.worldToCanvas(
+        data.handles.textBox.worldPosition
+      );
         // Only draw the tag name box
         const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID, textBoxLabelUID, [customTextBoxLabel], customTextBoxPositionLabel, canvasCoordinates, options);
         
