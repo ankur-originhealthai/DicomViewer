@@ -1,8 +1,8 @@
 <template>
-  <div class="h-[730px] bg-neutral-900 text-white border-l border-gray-800 p-4 overflow-y-auto">
+  <div class="h-[740px] bg-neutral-900 text-white border-l border-gray-800 p-4 overflow-y-auto">
     <h2 class="text-lg font-semibold mb-3">Measurements</h2>
 
-    <div v-if="measurementList.length" class="h-[270px]">
+    <div v-if="measurementList.length" class="h-[260px]">
 
       <div class="grid grid-cols-[100px_70px_1fr] text-xs text-gray-400 mb-2">
         <div>20 Meas.</div>

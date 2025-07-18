@@ -26,7 +26,6 @@ import {
     AngleTool,
     LabelTool,
 
-
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
 import { useLabelTool } from '~/customs/useLabelTool'
@@ -40,19 +39,14 @@ import { CustomLengthTool } from "~/customs/CustomLengthTool";
 import { customangletool } from "~/customs/CustomAngleTool";
 import { customellipse } from "~/customs/CustomEllipseTool";
 import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
-import {customCobbAngleTool} from "~/customs/CustomCobbAngleTool"
-import {custombidirectional} from "~/customs/CustomBiDirectionalTool"
+import { customCobbAngleTool } from "~/customs/CustomCobbAngleTool"
+import { custombidirectional } from "~/customs/CustomBiDirectionalTool"
+import type { undotype, redotype } from "~/customs/types/undo-redo";
 import type { Annotation } from "~/customs/types/Anatomy";
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
 const toolGroupId = "myToolGroup";
 const annotationGroupId = "annotationgroupid";
-
-type undoarray = {
-    uid: string,
-    annotation: Annotation
-}
-
 const isPlaying = ref<boolean>(false);
 const isMagnifyVisible = ref(false);
 const speed = ref(1);
@@ -63,8 +57,8 @@ const customlabel = ref(false);
 const bookmarkarray = ref<number[]>([]);
 const toolusedonframe = ref<string[]>([]);
 const isEditMode = ref(false);
-const undostack: any = [];
-const redostack: any = [];
+const undostack: undotype[] = [];
+const redostack: redotype[] = [];
 const elementRef = ref<HTMLDivElement | null>(null);
 const renderingEngineRef = ref<RenderingEngine | null>(null);
 const currentFile = ref<Blob | null>(null);
@@ -92,6 +86,9 @@ const customToolMap: Record<string, { tool: string; label: string }> = {
     TH: { tool: EllipticalROITool.toolName, label: 'BPD' },
     TG: { tool: EllipticalROITool.toolName, label: 'BS' },
     VF: { tool: AngleTool.toolName, label: 'CR' },
+    CA: { tool: customCobbAngleTool.toolName, label: 'CA' },
+    SP: { tool: CustomSplineROITool.toolName, label: 'SP' },
+    BD: { tool: custombidirectional.toolName, label: 'BD' }
 };
 
 function handleFileChange(event: Event) {
@@ -166,7 +163,7 @@ watch(currentFile, async () => {
         const numberOfFrames = metadata?.NumberOfFrames || 1;
         frameCount.value = numberOfFrames;
         if (numberOfFrames > 1) {
-            
+
             const imageIds = numberOfFrames > 1
                 ? Array.from({ length: numberOfFrames }, (_, i) => `${baseImageId}?frame=${i + 1}`)
                 : [baseImageId];
@@ -253,7 +250,11 @@ watch(currentFile, async () => {
     }
 });
 
-
+watch(isEditMode, () => {
+    if (isEditMode.value === false) {
+        isMagnifyVisible.value = false
+    }
+})
 
 const thumbnails = [
     '/img.png',
@@ -263,8 +264,6 @@ const thumbnails = [
     '/img.png',
     '/img.png',
     '/img.png',
-
-
 ];
 
 const {
@@ -289,7 +288,8 @@ useMagnifier(
     elementRef,
     renderingEngineRef,
     viewportId,
-    zoomFactor
+    zoomFactor,
+    isEditMode
 );
 
 watch([isPlaying, speed], ([playing, spd]) => {
@@ -422,8 +422,6 @@ const handleToolChange2 = (selectedToolName: string) => {
     }
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     viewport?.render();
-
-
 }
 const { prevTool } = useLabelToolDrag(
     elementRef,
@@ -448,16 +446,12 @@ onMounted(() => {
             toolGroup.setToolPassive(activeTool);
             //if (element) element.style.cursor = 'auto';
             const viewport = renderingEngineRef.value?.getViewport(viewportId);
+
             viewport?.render();
         }
     );
 
-
-
 })
-
-
-
 const trackNewAnnotations = () => {
     const annotations = annotation.state.getAllAnnotations();
     annotations.forEach((a) => {
@@ -482,24 +476,28 @@ const undo = () => {
     trackNewAnnotations();
     if (undostack.length === 0) return;
     const last = undostack.pop();
+    if (!last) return
+    if (!last.uid) return
+    if (!last.annotations) return
     annotation.state.removeAnnotation(last.uid);
     redostack.push({
         uid: last.uid,
-        ann: last.annotations,
+        annotations: last.annotations,
     });
     const viewport = renderingEngineRef.value?.getViewport(
         viewportId
     ) as StackViewport;
     viewport.render();
 };
-
 const redo = () => {
     if (redostack.length === 0) return;
     const lastRedo = redostack.pop();
-    annotation.state.addAnnotation(lastRedo.ann, annotationGroupId);
+    if (!lastRedo) return
+    if (!lastRedo.annotations) return
+    annotation.state.addAnnotation(lastRedo.annotations, annotationGroupId);
     undostack.push({
-        uid: lastRedo.ann.annotationUID,
-        annotation: lastRedo.ann,
+        uid: lastRedo.annotations.annotationUID,
+        annotations: lastRedo.annotations,
     });
     const viewport = renderingEngineRef.value?.getViewport(
         viewportId
@@ -598,7 +596,6 @@ const toolList = [
     LengthTool,
     EllipticalROITool,
     AngleTool,
-
 ];
 
 window.addEventListener('keydown', (event) => {
@@ -607,18 +604,14 @@ window.addEventListener('keydown', (event) => {
         const selectedUIDs = annotation.selection.getAnnotationsSelected();
         if (selectedUIDs) {
             selectedUIDs.forEach((uid) => {
-
                 annotation.state.removeAnnotation(uid);
-                annotation.selection.setAnnotationSelected(uid, false);
             });
             viewport?.render()
         }
 
     }
 });
-
 </script>
-
 <template>
     <div
         class="w-screen h-screen bg-black text-white font-sans grid grid-rows-[auto_1fr] grid-cols-[1fr_auto] overflow-hidden">
@@ -640,7 +633,6 @@ window.addEventListener('keydown', (event) => {
                         <img :src="thumb" class="object-cover w-full h-full" />
                     </button>
                 </div>
-
             </div>
             <div class="flex-1 flex flex-col m-1">
                 <div class="flex justify-between items-center px-4 py-2 bg-neutral-950 border-b border-gray-800">
@@ -697,3 +689,4 @@ window.addEventListener('keydown', (event) => {
             :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
     </div>
 </template>
+//annotation.selection.setAnnotationSelected(uid, false);

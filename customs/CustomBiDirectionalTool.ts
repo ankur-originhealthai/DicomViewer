@@ -195,16 +195,16 @@ export class custombidirectional extends BidirectionalTool {
         data.handles.textBox.worldPosition =
           viewport.canvasToWorld(canvasTextBoxCoords);
       }
-      const textBoxPosition = viewport.worldToCanvas(
-        data.handles?.points[0]
-      );
+     
+
+      const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[1] as Point3);
       const textBoxUID = "1";
       const boundingBox = drawLinkedTextBox_default(
         svgDrawingHelper,
         annotationUID,
         textBoxUID,
         textLines,
-        textBoxPosition,
+        customTextBoxPositionLabel,
         canvasCoordinates,
         {},
         options

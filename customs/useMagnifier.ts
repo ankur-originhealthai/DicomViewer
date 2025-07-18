@@ -6,7 +6,8 @@ export function useMagnifier(
   elementRef: Ref<HTMLDivElement | null>,
   renderingEngineRef: Ref<any>,
   viewportId: string,
-  zoomFactor: Ref<number>
+  zoomFactor: Ref<number>,
+  isEditMode: Ref<boolean>
 ) {
   let animationFrameRef: number | null = null;
   let lastMouseEvent: MouseEvent | null = null;

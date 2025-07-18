@@ -120,7 +120,7 @@ export class customCobbAngleTool extends CobbAngleTool {
 
     protected renderLinkedTextBox(data: AnnotationData, annotationUID: string, canvasCoordinates: Point2[], tagName: string, options: { visibility: boolean }, svgDrawingHelper: SVGDrawingHelper, renderAllAnnotationsParams: { viewport: Types.IViewport; targetId: string; mid2: Point2; arc1Angle: number; arc2Angle: number; arc1Start: Point2; arc1End: Point2; arc2Start: Point2; arc2End: Point2 }): void {
         let { viewport, targetId, mid2, arc1Angle, arc2Angle, arc1Start, arc1End, arc2Start, arc2End } = renderAllAnnotationsParams;
-        const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[0] as Point3);
+        const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[1] as Point3);
         const textBoxLabelUID = "cobbAngleTextLabel";
         if(!data.cachedStats ) return
         const angleData =  (data?.cachedStats[targetId]?.angle as number).toFixed(2)

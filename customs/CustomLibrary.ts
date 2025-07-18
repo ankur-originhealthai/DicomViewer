@@ -1199,10 +1199,8 @@ function findOpenUShapedContourVectorToPeak(
 function defaultGetTextLines4(data, targetId) {
   const { cachedStats, label } = data;
   const { length, width, unit } = cachedStats[targetId];
-  const textLines = [];
-  if (label) {
-    textLines.push(label);
-  }
+  const textLines: string[] = [];
+  
   if (length === void 0) {
     return textLines;
   }

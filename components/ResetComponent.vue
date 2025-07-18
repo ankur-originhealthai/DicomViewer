@@ -28,13 +28,14 @@
 
 <script setup lang="ts">
 import { annotation } from '@cornerstonejs/tools';
+import type { redotype, undotype } from '~/customs/types/undo-redo';
 
 const props = defineProps<{
   undo: () => void
   redo: () => void
   reset: () => void
-  undostack: []
-  redostack: []
+  undostack: undotype[]
+  redostack: redotype[]
 }>()
 
 
