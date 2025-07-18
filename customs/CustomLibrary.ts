@@ -110,88 +110,88 @@ function drawHandle(svgDrawingHelper: SVGDrawingHelper, annotationUID: string, h
     const miniY = handle[1] - offset;
     const innerCircleRadius = handleRadiusFloat * 0.5;
 
-    drawHandleDeleteCircle({
-        svgDrawingHelper,
-        annotationUID,
-        handleGroupUID,
-        uniqueIndex,
-        x: miniX,
-        y: miniY,
-        radius: innerCircleRadius,
-        opacity
-    });
+    // drawHandleDeleteCircle({
+    //     svgDrawingHelper,
+    //     annotationUID,
+    //     handleGroupUID,
+    //     uniqueIndex,
+    //     x: miniX,
+    //     y: miniY,
+    //     radius: innerCircleRadius,
+    //     opacity
+    // });
 }
 
-function drawHandleDeleteCircle(
-    { svgDrawingHelper, annotationUID, handleGroupUID, uniqueIndex, x, y, radius, opacity }
-        : handleDeleteCircleType): void {
-    const innerCircleHash = getHash_default(
-        annotationUID,
-        "handle",
-        `hg-${handleGroupUID}-index-${uniqueIndex}-inner`
-    );
+// function drawHandleDeleteCircle(
+//     { svgDrawingHelper, annotationUID, handleGroupUID, uniqueIndex, x, y, radius, opacity }
+//         : handleDeleteCircleType): void {
+//     const innerCircleHash = getHash_default(
+//         annotationUID,
+//         "handle",
+//         `hg-${handleGroupUID}-index-${uniqueIndex}-inner`
+//     );
 
-    const innerCircleAttrs = {
-        cx: `${x}`,
-        cy: `${y}`,
-        r: `${radius}`,
-        fill: "#fff",
-        opacity
-    };
+//     const innerCircleAttrs = {
+//         cx: `${x}`,
+//         cy: `${y}`,
+//         r: `${radius}`,
+//         fill: "#fff",
+//         opacity
+//     };
 
-    const existingInner = svgDrawingHelper.getSvgNode(innerCircleHash);
-    if (existingInner) {
-        setAttributesIfNecessary_default(innerCircleAttrs, existingInner);
-        svgDrawingHelper.setNodeTouched(innerCircleHash);
-    } else {
-        const inner = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        setNewAttributesIfValid_default(innerCircleAttrs, inner);
-        svgDrawingHelper.appendNode(inner, innerCircleHash);
-    }
+    // const existingInner = svgDrawingHelper.getSvgNode(innerCircleHash);
+    // if (existingInner) {
+    //     setAttributesIfNecessary_default(innerCircleAttrs, existingInner);
+    //     svgDrawingHelper.setNodeTouched(innerCircleHash);
+    // } else {
+    //     const inner = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    //     setNewAttributesIfValid_default(innerCircleAttrs, inner);
+    //     svgDrawingHelper.appendNode(inner, innerCircleHash);
+    // }
 
-    const minusLineLength = radius * 1.2;
+    // const minusLineLength = radius * 1.2;
 
-    drawMinusLine({
-        svgDrawingHelper,
-        annotationUID,
-        handleGroupUID,
-        uniqueIndex,
-        centerX: x,
-        centerY: y,
-        length: minusLineLength,
-        opacity
-    });
-}
+    // drawMinusLine({
+    //     svgDrawingHelper,
+    //     annotationUID,
+    //     handleGroupUID,
+    //     uniqueIndex,
+    //     centerX: x,
+    //     centerY: y,
+    //     length: minusLineLength,
+    //     opacity
+    // });
+//}
 
-function drawMinusLine(
-    { svgDrawingHelper, annotationUID, handleGroupUID, uniqueIndex, centerX, centerY, length, opacity }
-        : handleDeleteMinusType): void {
-    const x1 = centerX - length / 2;
-    const x2 = centerX + length / 2;
-    const y = centerY;
+// function drawMinusLine(
+//     { svgDrawingHelper, annotationUID, handleGroupUID, uniqueIndex, centerX, centerY, length, opacity }
+//         : handleDeleteMinusType): void {
+//     const x1 = centerX - length / 2;
+//     const x2 = centerX + length / 2;
+//     const y = centerY;
 
-    const minusLineHash = getHash_default(annotationUID, "handle", `hg-${handleGroupUID}-index-${uniqueIndex}-minus`);
-    const minusAttrs = {
-        x1: `${x1}`,
-        y1: `${y}`,
-        x2: `${x2}`,
-        y2: `${y}`,
-        stroke: "#000",
-        "stroke-width": "2",
-        opacity
-    };
+//     const minusLineHash = getHash_default(annotationUID, "handle", `hg-${handleGroupUID}-index-${uniqueIndex}-minus`);
+//     const minusAttrs = {
+//         x1: `${x1}`,
+//         y1: `${y}`,
+//         x2: `${x2}`,
+//         y2: `${y}`,
+//         stroke: "#000",
+//         "stroke-width": "2",
+//         opacity
+//     };
 
-    const existingMinus = svgDrawingHelper.getSvgNode(minusLineHash);
-    if (existingMinus) {
-        setAttributesIfNecessary_default(minusAttrs, existingMinus);
-        svgDrawingHelper.setNodeTouched(minusLineHash);
-    }
-    else {
-        const minus = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        setNewAttributesIfValid_default(minusAttrs, minus);
-        svgDrawingHelper.appendNode(minus, minusLineHash);
-    }
-};
+//     const existingMinus = svgDrawingHelper.getSvgNode(minusLineHash);
+//     if (existingMinus) {
+//         setAttributesIfNecessary_default(minusAttrs, existingMinus);
+//         svgDrawingHelper.setNodeTouched(minusLineHash);
+//     }
+//     else {
+//         const minus = document.createElementNS("http://www.w3.org/2000/svg", "line");
+//         setNewAttributesIfValid_default(minusAttrs, minus);
+//         svgDrawingHelper.appendNode(minus, minusLineHash);
+//     }
+// };
 
 function drawHandles(svgDrawingHelper: SVGDrawingHelper, annotationUID: string, handleGroupUID: string, handlePoints: Point2[], options = {}) {
     handlePoints.forEach((handle, i) => {
@@ -1245,7 +1245,8 @@ export {
     drawHandles_default, drawHandles_defaultPlus, drawLinkedTextBox_default, drawLine, midPoint2, drawTextBox_default,
     drawCircle_default, drawEllipseSvg_default, drawPolyline, _updateSplineInstance, _renderStats, _calculateCachedStats, _getSplineConfig,
     ContourSegmentRenderAnnotationInstance, defaultGetTextLines3, freeHandROIHydration, pointsAreWithinCloseContourProximity2,
-    calculateUShapeContourVectorToPeakIfNotPresent, drawHandle_default, drawHandleDeleteCircle, drawMinusLine, getHash_default,
+    calculateUShapeContourVectorToPeakIfNotPresent, drawHandle_default, //drawHandleDeleteCircle, drawMinusLine, 
+    getHash_default,
     setAttributesIfNecessary_default, setNewAttributesIfValid_default, convertToPolylineArray,
     updateBounds, getAABB, getArea, distance, distance3, _createDeleteButton,defaultGetTextLines4
 }
