@@ -61,17 +61,25 @@ function getMeasurementsSummary() {
       const firstKey = Object.keys(cachedStats)[0];
       if (firstKey) {
         const stat = cachedStats[firstKey];
-        if (stat.length != null) {
+        if (stat.length != null && stat.width != null) {
+          value = `L:${stat.length.toFixed(0)} ${stat.unit} ` + " " + ` W:${stat.width.toFixed(0)} ${stat.unit} `;
+          const mValues = ['M1', 'M2', 'M3']
+            .map(key => stat[key])
+            .filter(v => v != null)
+            .map(v => v.toFixed(2));
+          stats = mValues.join(' / ');
+        }
+        else if (stat.length != null) {
           value = `${stat.length.toFixed(0)} ${stat.unit}`;
           const mValues = ['M1', 'M2', 'M3']
             .map(key => stat[key])
             .filter(v => v != null)
-            .map(v => v.toFixed(0));
+            .map(v => v.toFixed(2));
           stats = mValues.join(' / ');
         } else if (stat.angle != null) {
-          value = `${stat.angle.toFixed(1)}°`;
+          value = `${stat.angle.toFixed(2)}°`;
         } else if (stat.area) {
-          value = `Area: ${stat.area.toFixed(1)} ${stat.areaUnit}`;
+          value = `Area: ${stat.area.toFixed(2)} ${stat.areaUnit}`;
         }
       }
     }

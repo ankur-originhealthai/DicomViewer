@@ -207,7 +207,7 @@ export class customangletool extends AngleTool {
     const targetId = this.getTargetId(viewport) as string;
     
     if(data.cachedStats && targetId){
-      const angleData = (data?.cachedStats[targetId]?.angle as number).toFixed(2) 
+      const angleData = (data?.cachedStats[targetId]?.angle).toFixed(2) 
       const customTextBoxLabel = "Angle:" +  angleData + "°";
 
       const boundingBox = drawLinkedTextBox_default(helper, uid, '2', [customTextBoxLabel], customTextBoxPositionLabel, coords, options);
