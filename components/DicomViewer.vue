@@ -97,7 +97,6 @@ function handleFileChange(event: Event) {
     if (file) {
         currentFile.value = file;
     }
-
 }
 
 const handleFlip = (type: string) => {
@@ -242,8 +241,6 @@ watch(currentFile, async () => {
             },
         });
         toolGroup.addViewport(viewportId, renderingEngineId);
-
-
         loaded.value = true;
     } catch (error) {
         console.error("DICOM load/render error:", error);

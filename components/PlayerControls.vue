@@ -17,7 +17,7 @@
       
       class="flex flex-col items-center "
     >
-      <button @click="onClick" class="tool-btn disabled:opacity-50 disabled:cursor-not-allowed" :disabled="frameCount === 1">
+      <button @click="onClick" class="tool-btn disabled:opacity-50 disabled:cursor-not-allowed" :disabled="frameCount === 1 || !frameCount">
         <Icon :name="name" class="w-6 h-6" />
       </button>
       <span class="text-xs mt-1 text-gray-300">{{ label }}</span>
@@ -28,7 +28,7 @@
       <select
         @change="(e) => handleSpeedChange(Number((e.target as HTMLSelectElement).value))"
         class="tool-btn disabled:opacity-50 disabled:cursor-not-allowed"
-        :disabled="frameCount === 1"
+        :disabled="frameCount === 1 || !frameCount"
       >
         <option value="0.5">0.5x</option>
         <option value="1" selected>1x</option>
