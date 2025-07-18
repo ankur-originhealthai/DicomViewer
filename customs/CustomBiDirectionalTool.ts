@@ -59,21 +59,29 @@ export class custombidirectional extends BidirectionalTool {
     }
     const targetId = this.getTargetId(viewport);
     const renderingEngine = viewport.getRenderingEngine();
-    const styleSpecifier = {
+    const styleSpecifier: StyleSpecifier = {
       toolGroupId: this.toolGroupId,
       toolName: this.getToolName(),
       viewportId: enabledElement.viewport.id,
+      annotationUID: '',
     };
     for (let i = 0; i < annotations.length; i++) {
       const annotation = annotations[i];
-      const { annotationUID, data } = annotation;
-      const { points, activeHandleIndex } = data.handles;
+      const annotationUID = annotation?.annotationUID
+      const data = annotation?.data
+      const points  = data?.handles?.points;
+      const activeHandleIndex = data?.handles?.activeHandleIndex
+      if(!points) return false
       const canvasCoordinates = points.map((p) => viewport.worldToCanvas(p));
-      styleSpecifier.annotationUID = annotationUID;
+      if(!annotationUID) return false
+         styleSpecifier.annotationUID = annotationUID;
+      
+     
       const { color, lineWidth, lineDash, shadow } = this.getAnnotationStyle({
         annotation,
         styleSpecifier,
       });
+     
       if (
         !data.cachedStats[targetId] ||
         data.cachedStats[targetId].unit == null

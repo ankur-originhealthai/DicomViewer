@@ -160,6 +160,7 @@ watch(currentFile, async () => {
         const numberOfFrames = metadata?.NumberOfFrames || 1;
         frameCount.value = numberOfFrames;
         if (numberOfFrames > 1) {
+            
             const imageIds = numberOfFrames > 1
                 ? Array.from({ length: numberOfFrames }, (_, i) => `${baseImageId}?frame=${i + 1}`)
                 : [baseImageId];
@@ -294,7 +295,7 @@ watch([isPlaying, speed], ([playing, spd]) => {
     playIntervalRef.value = setInterval(() => {
         const nextIndex = frameIndex.value + 1;
         if (nextIndex >= frameCount.value) {
-            isPlaying.value = false;
+            //isPlaying.value = false;
             frameIndex.value = 0;
             return;
         }

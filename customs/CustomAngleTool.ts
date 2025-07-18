@@ -200,7 +200,7 @@ export class customangletool extends AngleTool {
   }
   
   _renderTextBoxes(helper: SVGDrawingHelper, uid: string, data: AnnotationData, metadata: ExtendedMetadata, coords: Point2[], viewport: IViewport, options: any) {
-    const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points?.[2] as Point3);
+    const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points?.[1] as Point3);
      const textBoxPosition = viewport.worldToCanvas(
         data.handles.textBox.worldPosition
       );

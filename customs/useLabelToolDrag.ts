@@ -41,7 +41,7 @@ export function useLabelToolDrag(
         ann.data.hasCustomLabel = true;
         ann.metadata.label = label;
         const mainUID = ann.annotationUID;
-        const p1 = ann.data.handles.points[1];
+        const p1 = ann.data.handles.points[0];
         const worldPos = [
           p1[0] + 12.0,
           p1[1] - 4.0,
@@ -163,7 +163,7 @@ export function useLabelToolDrag(
       if (measurementMap.has(changedUID)) {
         const labelUID = measurementMap.get(changedUID)!;
         const labelAnn = annotation.state.getAnnotation(labelUID);
-        const p1 = changedAnn.data.handles?.points?.[1];
+        const p1 = changedAnn.data.handles?.points?.[0];
         const newPos = [
           p1[0] + 12.0,
           p1[1] - 4.0,
