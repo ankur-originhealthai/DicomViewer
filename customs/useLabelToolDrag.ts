@@ -32,14 +32,17 @@ export function useLabelToolDrag(
     
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     anns.forEach((ann: any) => {
+      //console.log(customlabel.value)
+      if(customlabel.value === false && currentCustomLabel.value === null){
+        if(ann.data.label === '')
+        ann.data.label = "No label";
+        ann.data.hasCustomLabel = true;
+    }
+    else{
       const toolName = ann?.metadata?.toolName;
       const labelEmpty = !ann?.data?.label || ann.data.label.trim() === "";
       const isAllow = ['Length', 'RectangleROI', 'EllipticalROI', 'Angle', 'Label', 'SplineROI', 'CobbAngle', 'Bidirectional'].includes(toolName);
-      if(customlabel.value === false){
-       ann.data.label = "No label";
-        ann.data.hasCustomLabel = true;
       
-    }
       if (isAllow && labelEmpty && !ann.data.hasCustomLabel) {
         const label = currentCustomLabel.value || "";
         ann.data.label = label;
@@ -83,7 +86,10 @@ export function useLabelToolDrag(
         measurementMap.set(mainUID, labelUID);
         viewport.render();
       }
+    
+    }
     });
+      
   };
   watch(
     cornerstoneElement,
