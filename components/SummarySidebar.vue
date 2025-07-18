@@ -40,44 +40,33 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
 import { annotation, Enums } from '@cornerstonejs/tools';
-
+import { eventTarget } from '@cornerstonejs/core';
 defineProps<{
   cineEvaluation: { label: string; level: 'normal' | 'warning' }[];
 }>();
-
 const measurementList = ref<{ label: string; value: string; stats: string }[]>([]);
-
 function getMeasurementsSummary() {
   const annotations = annotation.state.getAllAnnotations();
-  console.log(annotations)
   const summary: { label: string; value: string; stats: string }[] = [];
-
   annotations.forEach((ann: any) => {
     const toolName = ann?.metadata?.toolName;
     if (toolName === 'Label') return;
-
     const label = ann?.data?.label?.trim();
     if (!label) return;
-
     const data = ann.data;
     const cachedStats = data.cachedStats;
     let value = '';
     let stats = '';
-
     if (cachedStats && typeof cachedStats === 'object') {
       const firstKey = Object.keys(cachedStats)[0];
       if (firstKey) {
         const stat = cachedStats[firstKey];
-
         if (stat.length != null) {
           value = `${stat.length.toFixed(0)} ${stat.unit}`;
-
-          // Handle optional M1, M2, M3
           const mValues = ['M1', 'M2', 'M3']
             .map(key => stat[key])
             .filter(v => v != null)
             .map(v => v.toFixed(0));
-
           stats = mValues.join(' / ');
         } else if (stat.angle != null) {
           value = `${stat.angle.toFixed(1)}°`;
@@ -86,32 +75,24 @@ function getMeasurementsSummary() {
         }
       }
     }
-
     summary.push({ label, value, stats });
   });
-
   measurementList.value = summary;
 }
-
-let element: any = null;
-
+const handler = () => {
+  requestAnimationFrame(() => {
+    getMeasurementsSummary();
+  });
+};
 onMounted(() => {
   getMeasurementsSummary();
-
-  element = document.querySelector('.cornerstone-element') as HTMLDivElement;
-  if (!element) return;
-
-  const handler = () => getMeasurementsSummary();
-
-  element.addEventListener(Enums.Events.ANNOTATION_ADDED, handler);
-  element.addEventListener(Enums.Events.ANNOTATION_MODIFIED, handler);
-  element.addEventListener(Enums.Events.ANNOTATION_REMOVED, handler);
-
-  onUnmounted(() => {
-    if (!element) return;
-    element.removeEventListener(Enums.Events.ANNOTATION_ADDED, handler);
-    element.removeEventListener(Enums.Events.ANNOTATION_MODIFIED, handler);
-    element.removeEventListener(Enums.Events.ANNOTATION_REMOVED, handler);
-  });
+  eventTarget.addEventListener(Enums.Events.ANNOTATION_ADDED, handler);
+  eventTarget.addEventListener(Enums.Events.ANNOTATION_MODIFIED, handler);
+  eventTarget.addEventListener(Enums.Events.ANNOTATION_REMOVED, handler);
+});
+onUnmounted(() => {
+  eventTarget.removeEventListener(Enums.Events.ANNOTATION_ADDED, handler);
+  eventTarget.removeEventListener(Enums.Events.ANNOTATION_MODIFIED, handler);
+  eventTarget.removeEventListener(Enums.Events.ANNOTATION_REMOVED, handler);
 });
 </script>

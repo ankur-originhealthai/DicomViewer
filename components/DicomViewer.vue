@@ -42,10 +42,16 @@ import { customellipse } from "~/customs/CustomEllipseTool";
 import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
 import {customCobbAngleTool} from "~/customs/CustomCobbAngleTool"
 import {custombidirectional} from "~/customs/CustomBiDirectionalTool"
+import type { Annotation } from "~/customs/types/Anatomy";
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
 const toolGroupId = "myToolGroup";
 const annotationGroupId = "annotationgroupid";
+
+type undoarray = {
+    uid: string,
+    annotation: Annotation
+}
 
 const isPlaying = ref<boolean>(false);
 const isMagnifyVisible = ref(false);
