@@ -49,7 +49,7 @@ function getMeasurementsSummary() {
   const annotations = annotation.state.getAllAnnotations();
   const summary: { label: string; value: string; stats: string }[] = [];
   annotations.forEach((ann: any) => {
-    console.log(ann);
+    //console.log(ann);
     const toolName = ann?.metadata?.toolName;
     if (toolName === 'Label') return;
     const label = ann?.data?.label?.trim();

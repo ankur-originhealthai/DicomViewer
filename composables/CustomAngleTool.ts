@@ -214,7 +214,7 @@ export class customangletool extends AngleTool {
 
   // Draw the main angle box
   if (data.cachedStats && targetId) {
-    const angle = data?.cachedStats[targetId]?.angle
+    const angle = data?.cachedStats[targetId]?.angle?.toFixed(2);
     const angleText = `Angle: ${angle}°`;
 
     const angleLabelPosition = viewport.worldToCanvas(data.handles.points[1] as Point3);

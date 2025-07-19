@@ -42,9 +42,7 @@ import { CustomSplineROITool } from "~/composables/CustomSplineROITool";
 import { customCobbAngleTool } from "~/composables/CustomCobbAngleTool"
 import { custombidirectional } from "~/composables/CustomBiDirectionalTool"
 import type { undotype, redotype } from "~/types/undo-redo";
-import { currentcustomLabel } from '~/components/labelState'
-
-
+import { currentcustomLabel } from '~/components/labelState';
 
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
@@ -94,7 +92,7 @@ const customToolMap: Record<string, { tool: string; label: string }> = {
     BD: { tool: custombidirectional.toolName, label: 'BD' }
 };
 
-function handleFileChange(event: Event) {
+const handleFileChange =(event: Event) => {
     const target = event.target as HTMLInputElement;
     const file = target.files?.[0];
     if (file) {
@@ -693,4 +691,3 @@ window.addEventListener('keydown', (event) => {
             :onChange="setLabelInputValue" :onSubmit="onLabelSubmit" :onClose="onLabelCancel" />
     </div>
 </template>
-//annotation.selection.setAnnotationSelected(uid, false);
