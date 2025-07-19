@@ -121,7 +121,7 @@ export class CustomLengthTool extends LengthTool {
   }
 
   protected renderLinkedTextBox(data: AnnotationData, annotationUID: string, textLines: string[], canvasCoordinates: Point2[], options: { visibility: boolean }, viewport: Types.IViewport, svgDrawingHelper: SVGDrawingHelper): void {
-    const textBoxLabelUID = "2";
+    const textBoxLabelUID = "1";
     const textBoxWorldPoints = getLeftAndRightPoints(data.handles.points);
     const customTextBoxPositionLabel = viewport.worldToCanvas((textBoxWorldPoints.right?.length === 3 ? textBoxWorldPoints.right : [0,0,0]) as Point3);
     const tag = textLines[0];
