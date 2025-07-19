@@ -1,7 +1,7 @@
 import type { Types } from "@cornerstonejs/core";
 import { SplineROITool } from "@cornerstonejs/tools";
 import { getAnnotation, getChildAnnotations } from "@cornerstonejs/tools/annotation/annotationState";
-import { drawPolyline, _getSplineConfig, drawHandles_defaultPlus, drawHandles_default, _updateSplineInstance, _renderStats } from './CustomLibrary';
+import { drawPolyline, _getSplineConfig, drawHandles_defaultPlus, drawHandles_default, _updateSplineInstance, _renderStats, drawLinkedTextBox_default } from './CustomLibrary';
 
 
 import { csjsTools } from "./types/CSJSTools";
@@ -14,6 +14,7 @@ import type { IImageData, Point2, Point3 } from "@cornerstonejs/core/types";
 import type { Handles, AnnotationData, ExtendedMetadata, EditData, CachedStats } from "./types/tools-type";
 import type { AnnotationRenderContext, Annotation } from "@cornerstonejs/tools/types";
 import { ChangeTypes } from "@cornerstonejs/tools/enums";
+import { currentcustomLabel } from "~/components/labelState";
 
 
 const TOUCH_TO_FINISH_DELAY = 200;
@@ -212,6 +213,34 @@ export class CustomSplineROITool extends SplineROITool {
     const textLines = [metadata.tagName ?? "Area:" + areaSpline + data?.cachedStats[targetId].areaUnit];
     if(!textLines) return false;
     _renderStats(annotation as any, viewport, svgDrawingHelper, annotationStyle.textbox as any, targetId, textLines, [renderStatsParams]);
+
+    const isDrawingThis =
+    this.editData?.annotation?.annotationUID === annotationUID &&
+    this.editData?.newAnnotation === true;
+
+  if (!isDrawingThis && data.handles?.points.length >= 3) {
+    const labelBoxPosition = viewport.worldToCanvas(data.handles.points[0] as Point3);
+
+    // Assign label once
+    if (!data.label) {
+      data.label = currentcustomLabel.value?.trim() || 'No label';
+    }
+
+    if (data.label && data.label !== 'No label') {
+      drawLinkedTextBox_default(
+        svgDrawingHelper,
+        annotationUID,
+        '2',
+        [data.label],
+        labelBoxPosition,
+        canvasCoordinates,
+        {},
+        Option
+      );
+    }
+  }
+
+
     if (this.fireChangeOnUpdate?.annotationUID === annotationUID) {
         this.triggerChangeEvent(annotation as any, enabledElement, this.fireChangeOnUpdate.changeType, this.fireChangeOnUpdate.contourHoleProcessingEnabled);
         this.fireChangeOnUpdate = {

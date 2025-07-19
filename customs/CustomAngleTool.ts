@@ -11,6 +11,7 @@ import type { SVGDrawingHelper } from "@cornerstonejs/tools/types";
 import type { PlanarBoundingBox } from "@cornerstonejs/tools/types";
 import { csjsTools } from './types/CSJSTools';
 import type { ExtendedMetadata, CachedStats, AnnotationData, StyleSpecifier } from './types/tools-type';
+import { currentcustomLabel } from "~/components/labelState";
 
 
 export class customangletool extends AngleTool {
@@ -199,28 +200,68 @@ export class customangletool extends AngleTool {
     }
   }
   
-  _renderTextBoxes(helper: SVGDrawingHelper, uid: string, data: AnnotationData, metadata: ExtendedMetadata, coords: Point2[], viewport: IViewport, options: any) {
-    const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points?.[1] as Point3);
-     const textBoxPosition = viewport.worldToCanvas(
-        data.handles.textBox.worldPosition
-      );
-    const targetId = this.getTargetId(viewport) as string;
-    
-    if(data.cachedStats && targetId){
-      const angleData = (data?.cachedStats[targetId]?.angle).toFixed(2) 
-      const customTextBoxLabel = "Angle:" +  angleData + "°";
+  _renderTextBoxes(
+  helper: SVGDrawingHelper,
+  annotationUID: string,
+  data: AnnotationData,
+  metadata: ExtendedMetadata,
+  canvasCoordinates: Point2[],
+  viewport: IViewport,
+  options: any
+) {
+  const targetId = this.getTargetId(viewport) as string;
+  const textBoxPosition = viewport.worldToCanvas(data.handles.textBox.worldPosition);
 
-      const boundingBox = drawLinkedTextBox_default(helper, uid, '2', [customTextBoxLabel], customTextBoxPositionLabel, coords, options);
-  
+  // Draw the main angle box
+  if (data.cachedStats && targetId) {
+    const angle = data?.cachedStats[targetId]?.angle
+    const angleText = `Angle: ${angle}°`;
+
+    const angleLabelPosition = viewport.worldToCanvas(data.handles.points[1] as Point3);
+
+    const boundingBox = drawLinkedTextBox_default(
+      helper,
+      annotationUID,
+      '1',
+      [angleText],
+      angleLabelPosition,
+      canvasCoordinates,
+      options
+    );
+
     if (data.handles?.textBox && boundingBox) {
       data.handles.textBox.worldBoundingBox = this._buildBoundingBox(boundingBox, viewport);
     }
-    }
-    
-  
-    // Only draw the tag name box
-    
   }
+
+  // Draw the custom label box (once created)
+  const isDrawingThis =
+    this.editData?.annotation?.annotationUID === annotationUID &&
+    this.editData?.newAnnotation === true;
+
+  if (!isDrawingThis && data.handles?.points.length === 3) {
+    const labelBoxPosition = viewport.worldToCanvas(data.handles.points[2] as Point3);
+
+    // Assign label once
+    if (!data.label) {
+      data.label = currentcustomLabel.value?.trim() || 'No label';
+    }
+
+    if (data.label && data.label !== 'No label') {
+      drawLinkedTextBox_default(
+        helper,
+        annotationUID,
+        '2',
+        [data.label],
+        labelBoxPosition,
+        canvasCoordinates,
+        {},
+        options
+      );
+    }
+  }
+}
+
   
   _buildBoundingBox(box: PlanarBoundingBox, viewport: IViewport) {
     const { x, y, width, height } = box;

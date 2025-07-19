@@ -42,7 +42,10 @@ import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
 import { customCobbAngleTool } from "~/customs/CustomCobbAngleTool"
 import { custombidirectional } from "~/customs/CustomBiDirectionalTool"
 import type { undotype, redotype } from "~/customs/types/undo-redo";
-import type { Annotation } from "~/customs/types/Anatomy";
+import { currentcustomLabel } from '~/components/labelState'
+
+
+
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";
 const toolGroupId = "myToolGroup";
@@ -68,7 +71,7 @@ const frameIndex = ref(0);
 const isBookmarked = ref(false)
 const hideAnnotation = ref(false)
 const hideMeasurements = ref(false)
-const currentCustomLabel = ref<string | null>(null)
+//const currentCustomLabel = ref<string | null>(null)
 const customToolMap: Record<string, { tool: string; label: string }> = {
     NT: { tool: LengthTool.toolName, label: 'NT' },
     CRL: { tool: LengthTool.toolName, label: 'CRL' },
@@ -332,6 +335,8 @@ const handleSpeedChange = (num: number) => {
 const handleToolChange = (selectedToolName: string) => {
     customlabel.value = false;
     prevToolRef.value = selectedToolName;
+
+    currentcustomLabel.value = ''
     if (["Length", "EllipticalROI", "Angle", "Label", "SplineROI", "CobbAngle", "Bidirectional"].includes(selectedToolName) && isMagnifyVisible.value === false) {
         isMagnifyVisible.value = true;
     } else if (
@@ -389,7 +394,8 @@ const handleToolChange2 = (selectedToolName: string) => {
     ) {
         isMagnifyVisible.value = (false);
     }
-    currentCustomLabel.value = customTool ? customTool.label : null
+    const newLabel = customTool ? customTool.label : ''
+    currentcustomLabel.value = newLabel?.toString()
     const allTools = [
         PanTool.toolName,
         ZoomTool.toolName,
@@ -421,18 +427,18 @@ const handleToolChange2 = (selectedToolName: string) => {
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     viewport?.render();
 }
-const { prevTool } = useLabelToolDrag(
-    elementRef,
-    renderingEngineRef,
-    viewportId,
-    toolGroupId,
-    isMagnifyVisible,
-    prevToolRef,
-    currentCustomLabel,
-    customlabel
+// const { prevTool } = useLabelToolDrag(
+//     elementRef,
+//     renderingEngineRef,
+//     viewportId,
+//     toolGroupId,
+//     isMagnifyVisible,
+//     prevToolRef,
+//     currentCustomLabel,
+//     customlabel
 
-);
-prevToolRef.value = prevTool.value
+// );
+// prevToolRef.value = prevTool.value
 
 onMounted(() => {
     eventTarget.addEventListener(csToolsEnums.Events.ANNOTATION_ADDED,

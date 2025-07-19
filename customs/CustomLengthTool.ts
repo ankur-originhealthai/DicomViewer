@@ -14,6 +14,7 @@ import { getAnnotation } from '@cornerstonejs/tools/annotation/annotationState';
 import type { ExtendedMetadata, AnnotationData, StyleSpecifier, Handles, DragEventDetail, EditData } from '~/customs/types/tools-type';
 import type { MouseDragEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { InteractionEventType } from '@cornerstonejs/tools/types/EventTypes';
+import { currentcustomLabel } from '~/components/labelState';
 
 const getAnnotations = annotationTools.state.getAnnotations;
 const isAnnotationVisible = annotationTools.visibility.isAnnotationVisible;
@@ -129,7 +130,34 @@ export class CustomLengthTool extends LengthTool {
     // Only draw the tag name box
     const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID || '', textBoxLabelUID, [tag], customTextBoxPositionLabel,
        canvasCoordinates, {...options, isLeftDown: !textBoxWorldPoints.isLeftDown });
-  
+    
+
+      const isDrawingThis =
+    this.editData?.annotation?.annotationUID === annotationUID &&
+    this.editData?.newAnnotation === true;
+
+  if (!isDrawingThis && data.handles?.points.length === 2) {
+    const labelBoxPosition = viewport.worldToCanvas(data.handles.points[0] as Point3);
+
+    // Assign label once
+    if (!data.label) {
+      data.label = currentcustomLabel.value?.trim() || 'No label';
+    }
+
+    if (data.label && data.label !== 'No label') {
+      drawLinkedTextBox_default(
+        svgDrawingHelper,
+        annotationUID,
+        '2',
+        [data.label],
+        labelBoxPosition,
+        canvasCoordinates,
+        {},
+        options
+      );
+    }
+  }
+
     if (!boundingBox) return;
     const { x: left, y: top, width, height } = boundingBox;
   

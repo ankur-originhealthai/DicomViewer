@@ -15,6 +15,7 @@ import type { Point3, Point2 } from '@cornerstonejs/core/types';
 import type { AnnotationData, StyleSpecifier, EditData, CobbAngleAnnotation, Handles } from './types/tools-type';
 import type { MouseDragEventType, MouseMoveEventType, MouseClickEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { Annotation, Annotations } from '@cornerstonejs/tools/types/AnnotationTypes';
+import { currentcustomLabel } from '~/components/labelState';
 
 //const { setActivateDraw, isEraserToolActive, activeTool } = useToolStore.getState();
 let imageId: string = '';
@@ -32,27 +33,27 @@ export class customCobbAngleTool extends CobbAngleTool {
         const originalDeactivateModify = this._deactivateModify;
 
         this._activateDraw = (element: HTMLDivElement) => {
-          originalActivateDraw.call(this, element);
-          //setActivateDraw(true);
-          element.addEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
-          element.addEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
-          element.addEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
+            originalActivateDraw.call(this, element);
+            //setActivateDraw(true);
+            element.addEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
+            element.addEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
+            element.addEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
         };
 
         this._activateModify = (element: HTMLDivElement) => {
-          originalActivateModify(element);
-          element.addEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
-          element.addEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
-          element.addEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
+            originalActivateModify(element);
+            element.addEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
+            element.addEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
+            element.addEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
         }
 
         this._deactivateDraw = (element: HTMLDivElement) => {
-          originalDeactivateDraw.call(this, element);
-          //EventBus.$emit('updateAnnotations');
-          element.removeEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
-          element.removeEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
-          element.removeEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
-          this.isFirst = true;
+            originalDeactivateDraw.call(this, element);
+            //EventBus.$emit('updateAnnotations');
+            element.removeEventListener(Events.TOUCH_END, this._endCallback as unknown as EventListener);
+            element.removeEventListener(Events.TOUCH_DRAG, this._dragCallback as unknown as EventListener);
+            element.removeEventListener(Events.TOUCH_START, this._mouseDownCallback as unknown as EventListener);
+            this.isFirst = true;
         };
 
         this._deactivateModify = (element: HTMLDivElement) => {
@@ -97,7 +98,7 @@ export class customCobbAngleTool extends CobbAngleTool {
             if (!data.handles?.points) return;
             const { deltaPoints } = eventDetail as MouseDragEventType['detail'];
             const points = data.handles.points;
-            const updatedPoints = isNearFirstLine 
+            const updatedPoints = isNearFirstLine
                 ? updateLinePoints([points[0], points[1]], deltaPoints.world)
                 : updateLinePoints([points[2], points[3]], deltaPoints.world);
             if (!updatedPoints) return;
@@ -122,16 +123,24 @@ export class customCobbAngleTool extends CobbAngleTool {
         let { viewport, targetId, mid2, arc1Angle, arc2Angle, arc1Start, arc1End, arc2Start, arc2End } = renderAllAnnotationsParams;
         const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[1] as Point3);
         const textBoxLabelUID = "cobbAngleTextLabel";
-        if(!data.cachedStats ) return
-        const angleData =  (data?.cachedStats[targetId]?.angle as number).toFixed(2)
+        if (!data.cachedStats) return
+        const angleData = (data?.cachedStats[targetId]?.angle as number).toFixed(2)
         const customTextBoxLabel = tagName || "Angle:" + angleData + "°";
-         const textBoxPosition = viewport.worldToCanvas(
-        data.handles.textBox.worldPosition
-      );
+        const textBoxPosition = viewport.worldToCanvas(
+            data.handles.textBox.worldPosition
+        );
+
+
+
+
+
         // Only draw the tag name box
         const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID, textBoxLabelUID, [customTextBoxLabel], customTextBoxPositionLabel, canvasCoordinates, options);
-        
-        if (!boundingBox) return;
+
+        if (!boundingBox) { return }
+
+
+
         const { x: left, y: top, width, height } = boundingBox;
         data.handles.textBox.worldBoundingBox = {
             topLeft: viewport.canvasToWorld([left, top]) as Point3,
@@ -142,23 +151,25 @@ export class customCobbAngleTool extends CobbAngleTool {
         if (this.configuration.showArcLines) {
             const arc1TextBoxUID = "arcAngle1";
             const arc1TextLine = [
-            `${arc1Angle.toFixed(2)} ${String.fromCharCode(176)}`
+                `${arc1Angle.toFixed(2)} ${String.fromCharCode(176)}`
             ];
             const arch1TextPosCanvas = midPoint2(arc1Start, arc1End);
             drawTextBox_default(svgDrawingHelper, annotationUID, arc1TextBoxUID, arc1TextLine, arch1TextPosCanvas as Point2, {
-            ...options,
-            padding: 3
+                ...options,
+                padding: 3
             });
             const arc2TextBoxUID = "arcAngle2";
             const arc2TextLine = [
-            `${arc2Angle.toFixed(2)} ${String.fromCharCode(176)}`
+                `${arc2Angle.toFixed(2)} ${String.fromCharCode(176)}`
             ];
             const arch2TextPosCanvas = midPoint2(arc2Start, arc2End);
             drawTextBox_default(svgDrawingHelper, annotationUID, arc2TextBoxUID, arc2TextLine, arch2TextPosCanvas as Point2, {
-            ...options,
-            padding: 3
+                ...options,
+                padding: 3
             });
         }
+
+
     }
 
     protected triggerAnnotationRender(viewportIdsToRender: string[]): void {
@@ -185,8 +196,8 @@ export class customCobbAngleTool extends CobbAngleTool {
 
     protected renderDrawHandles(svgDrawingHelper: SVGDrawingHelper, annotationUID: string, handleGroupUID: string, handleColor: string, lineDash: number[], lineWidth: number, renderDrawHandlesParams: { canvasCoordinates: Point2[]; activeHandleCanvasCoords?: Point2[] }): void {
         let { canvasCoordinates, activeHandleCanvasCoords } = renderDrawHandlesParams;
-        const isHighlighted = (activeHandleCanvasCoords?.[0] != null) 
-                              || getAnnotation(annotationUID).highlighted;
+        const isHighlighted = (activeHandleCanvasCoords?.[0] != null)
+            || getAnnotation(annotationUID).highlighted;
         if (isHighlighted) {
             drawHandles_default(svgDrawingHelper, annotationUID, handleGroupUID, canvasCoordinates, {
                 handleColor,
@@ -212,20 +223,20 @@ export class customCobbAngleTool extends CobbAngleTool {
                 arc2Angle: null,
                 points: {
                     world: {
-                    arc1Start: [0, 0, 0] as Point3,
-                    arc1End: [0, 0, 0] as Point3,
-                    arc2Start: [0, 0, 0] as Point3,
-                    arc2End: [0, 0, 0] as Point3,
-                    arc1Angle: null,
-                    arc2Angle: null
+                        arc1Start: [0, 0, 0] as Point3,
+                        arc1End: [0, 0, 0] as Point3,
+                        arc2Start: [0, 0, 0] as Point3,
+                        arc2End: [0, 0, 0] as Point3,
+                        arc1Angle: null,
+                        arc2Angle: null
                     },
                     canvas: {
-                    arc1Start: [0, 0] as Point2,
-                    arc1End: [0, 0] as Point2,
-                    arc2Start: [0, 0] as Point2,
-                    arc2End: [0, 0] as Point2,
-                    arc1Angle: null,
-                    arc2Angle: null
+                        arc1Start: [0, 0] as Point2,
+                        arc1End: [0, 0] as Point2,
+                        arc2Start: [0, 0] as Point2,
+                        arc2End: [0, 0] as Point2,
+                        arc1Angle: null,
+                        arc2Angle: null
                     }
                 }
             };
@@ -243,134 +254,196 @@ export class customCobbAngleTool extends CobbAngleTool {
     }
 
     protected getTextBoxWorldPosition(viewport: Types.IViewport, data: AnnotationData, canvasCoordinates: Point2[]): void {
-        if(data.handles.textBox.hasMoved) return;
+        if (data.handles.textBox.hasMoved) return;
         const canvasTextBoxCoords = getTextBoxCoordsCanvas(canvasCoordinates);
         data.handles.textBox.worldPosition = viewport.canvasToWorld(canvasTextBoxCoords);
     }
 
-    protected renderAllAnnotations(annotations: CobbAngleAnnotation[], targetId: string, renderingEngine: Types.IRenderingEngine, styleSpecifier: StyleSpecifier, enabledElement: Types.IEnabledElement, svgDrawingHelper: SVGDrawingHelper, renderAllAnnotationsParams: { viewport: Types.IViewport; renderStatus: boolean }): boolean {
-        let { viewport, renderStatus } = renderAllAnnotationsParams;
+    protected renderAllAnnotations(
+  annotations: CobbAngleAnnotation[],
+  targetId: string,
+  renderingEngine: Types.IRenderingEngine,
+  styleSpecifier: StyleSpecifier,
+  enabledElement: Types.IEnabledElement,
+  svgDrawingHelper: SVGDrawingHelper,
+  renderAllAnnotationsParams: { viewport: Types.IViewport; renderStatus: boolean }
+): boolean {
+  let { viewport, renderStatus } = renderAllAnnotationsParams;
 
-        for (const annotation of annotations) {
-            const { annotationUID, data, metadata } = annotation;
-            let { points } = data.handles!;
-            let { activeHandleIndex } = data.handles!;
-            
-            styleSpecifier.annotationUID = annotationUID;
-            const { color, lineWidth, lineDash } = this.getAnnotationStyle({
-                annotation: annotation as Annotation,
-                styleSpecifier
-            });
-            let worldPos: Point3[] = [];
-            points?.forEach(point => worldPos.push(point));
-            if(points){
-                points = [...worldPos];
-            }
-            const canvasCoordinates = points.map((p) => viewport.worldToCanvas(p));
-            this.calculateStats(data, targetId, annotation, renderingEngine, enabledElement);
-            let activeHandleCanvasCoords: Point2[] | undefined;
-            activeHandleCanvasCoords = this.returnActiveHandleCanvasCoords(activeHandleCanvasCoords, annotationUID, activeHandleIndex, canvasCoordinates);
-            
-            if (!viewport.getRenderingEngine()) {
-                console.warn("Rendering Engine has been destroyed");
-                return renderStatus;
-            }
-            if (!isAnnotationVisible(annotationUID)) continue;
-            const handleGroupUID = "0";
-            const handleColor = "yellow";
-            let renderDrawHandlesParams = { canvasCoordinates, activeHandleCanvasCoords };
-            this.renderDrawHandles(svgDrawingHelper, annotationUID, handleGroupUID, handleColor, lineDash as unknown as number[], lineWidth as unknown as number, renderDrawHandlesParams);
-            const firstLine = [canvasCoordinates[0], canvasCoordinates[1]];
-            const secondLine = [canvasCoordinates[2], canvasCoordinates[3]];
-            let lineUID = "line1";
-            drawLine(svgDrawingHelper, annotationUID, lineUID, firstLine[0], firstLine[1], {
-                color,
-                width: lineWidth,
-                lineDash
-            });
-            renderStatus = true;
-            const options = this.getLinkedTextBoxStyle(styleSpecifier, annotation as Annotation);
-            if (canvasCoordinates.length < 4) {
-                this.getTextBoxWorldPosition(viewport, data, canvasCoordinates);
-                const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[0] as Point3);
-                const textBoxLabelUID = "cobbAngleTextLabel";
-                //const tagName = getTagWithPosition(metadata, this.getToolName(), enabledElement);
-                        
-                
-        
-                metadata.measurementValues = [{ name: "angle", value: data.cachedStats?.[targetId]?.angle as number | null, unit: (this.getToolName() as csjsTools) || 'deg' }];
-                const customTextBoxLabel = metadata.tagName || '';
-                drawLinkedTextBox_default(svgDrawingHelper, annotationUID, textBoxLabelUID, [customTextBoxLabel], customTextBoxPositionLabel, canvasCoordinates, options);
-                return renderStatus;
-            }
-            lineUID = "line2";
-            drawLine(svgDrawingHelper, annotationUID, lineUID, secondLine[0], secondLine[1], {
-                color,
-                width: lineWidth,
-                lineDash
-            });
-            lineUID = "linkLine";
-            const mid1 = midPoint2(firstLine[0], firstLine[1]);
-            const mid2 = midPoint2(secondLine[0], secondLine[1]);
-            drawLine(svgDrawingHelper, annotationUID, lineUID, mid1 as Point2, mid2 as Point2, {
-                color,
-                lineWidth: "1",
-                lineDash: "1,4"
-            });
-            const { arc1Start, arc1End, arc2End, arc2Start } = data.cachedStats?.[targetId]?.points?.canvas || { arc1Start: [0, 0] as Point2, arc1End: [0, 0] as Point2, arc2Start: [0, 0] as Point2, arc2End: [0, 0] as Point2 };
-            const { arc1Angle, arc2Angle } = data.cachedStats?.[targetId] || { arc1Angle: 0, arc2Angle: 0 };
-            const renderShowArcLinesParams = { arc1Start, arc1End, arc2Start, arc2End, color };
-            this.renderShowArcLines(svgDrawingHelper, annotationUID, lineUID, renderShowArcLinesParams as { arc1Start: Point2; arc1End: Point2; arc2Start: Point2; arc2End: Point2; color: string });
-            if (!data.cachedStats?.[targetId]?.angle) continue;
-            let linkedTextBoxParams = { viewport, targetId, mid2, arc1Angle, arc2Angle, arc1Start, arc1End, arc2Start, arc2End };
-            if (!options.visibility) {
-                data.handles.textBox = { hasMoved: false, worldPosition: [0, 0, 0] as Point3,
-                    worldBoundingBox: {
-                        topLeft: [0, 0, 0] as Point3,
-                        topRight: [0, 0, 0] as Point3,
-                        bottomLeft: [0, 0, 0] as Point3,
-                        bottomRight: [0, 0, 0] as Point3
-                    }
-                };
-                continue;
-            }
-            //const tagName = getTagWithPosition(metadata, this.getToolName(), enabledElement);
-                
-            // metadata.tagName ??= tagName?.tagName;
-            // metadata.tagPosition ??= tagName?.tagPosition;
-            // metadata.measurementTagId ??= tagName?.measurementTagId;
-            // metadata.measurementTagName ??= tagName?.measurementTagName;
-    
-            metadata.measurementValues = [{ name: "angle", value: data.cachedStats[targetId]?.angle as number | null, unit:(this.getToolName() as csjsTools) || 'deg' }];
-            //EventBus.$emit('updatedMeasurements', annotationUID);
-            this.renderLinkedTextBox(data, annotationUID, canvasCoordinates, metadata.tagName || '', options as { visibility: boolean }, svgDrawingHelper, linkedTextBoxParams as { viewport: Types.IViewport; targetId: string; mid2: Point2; arc1Angle: number; arc2Angle: number; arc1Start: Point2; arc1End: Point2; arc2Start: Point2; arc2End: Point2 } );
-        }
-        return renderStatus;
+  for (const annotation of annotations) {
+    const { annotationUID, data, metadata } = annotation;
+    let points = data.handles?.points ?? [];
+    let activeHandleIndex = data.handles?.activeHandleIndex ?? null;
+
+    styleSpecifier.annotationUID = annotationUID;
+    const { color, lineWidth, lineDash } = this.getAnnotationStyle({
+      annotation: annotation as Annotation,
+      styleSpecifier,
+    });
+
+    const canvasCoordinates = points.map((p) => viewport.worldToCanvas(p));
+    this.calculateStats(data, targetId, annotation, renderingEngine, enabledElement);
+
+    let activeHandleCanvasCoords: Point2[] | undefined;
+    activeHandleCanvasCoords = this.returnActiveHandleCanvasCoords(
+      activeHandleCanvasCoords,
+      annotationUID,
+      activeHandleIndex,
+      canvasCoordinates
+    );
+
+    if (!viewport.getRenderingEngine()) {
+      console.warn("Rendering Engine has been destroyed");
+      return renderStatus;
     }
+    if (!isAnnotationVisible(annotationUID)) continue;
+
+    const handleGroupUID = "0";
+    const handleColor = "yellow";
+    let renderDrawHandlesParams = { canvasCoordinates, activeHandleCanvasCoords };
+    this.renderDrawHandles(
+      svgDrawingHelper,
+      annotationUID,
+      handleGroupUID,
+      handleColor,
+      lineDash as unknown as number[],
+      lineWidth as unknown as number,
+      renderDrawHandlesParams
+    );
+
+    // Draw first line
+    if (canvasCoordinates.length >= 2) {
+      drawLine(svgDrawingHelper, annotationUID, "line1", canvasCoordinates[0], canvasCoordinates[1], {
+        color,
+        width: lineWidth,
+        lineDash,
+      });
+      renderStatus = true;
+    }
+
+    // Draw second line and linking line only if points available
+    if (canvasCoordinates.length >= 4) {
+      drawLine(svgDrawingHelper, annotationUID, "line2", canvasCoordinates[2], canvasCoordinates[3], {
+        color,
+        width: lineWidth,
+        lineDash,
+      });
+
+      const mid1 = midPoint2(canvasCoordinates[0], canvasCoordinates[1]);
+      const mid2 = midPoint2(canvasCoordinates[2], canvasCoordinates[3]);
+      drawLine(svgDrawingHelper, annotationUID, "linkLine", mid1, mid2, {
+        color,
+        lineWidth: 1,
+        lineDash: "1,4",
+      });
+
+      // Draw arc lines if enabled
+      const {
+        arc1Start,
+        arc1End,
+        arc2Start,
+        arc2End,
+      } = data.cachedStats?.[targetId]?.points?.canvas ?? {
+        arc1Start: [0, 0] as Point2,
+        arc1End: [0, 0] as Point2,
+        arc2Start: [0, 0] as Point2,
+        arc2End: [0, 0] as Point2,
+      };
+      const { arc1Angle, arc2Angle } = data.cachedStats?.[targetId] ?? {
+        arc1Angle: 0,
+        arc2Angle: 0,
+      };
+      this.renderShowArcLines(svgDrawingHelper, annotationUID, "arcLines", {
+        arc1Start,
+        arc1End,
+        arc2Start,
+        arc2End,
+        color,
+      });
+    }
+
+    // Draw main angle text box near point 1
+    if (canvasCoordinates.length >= 2) {
+      this.getTextBoxWorldPosition(viewport, data, canvasCoordinates);
+      const customTextBoxPositionLabel = viewport.worldToCanvas(data.handles?.points[1] as Point3);
+      const textBoxLabelUID = "cobbAngleTextLabel";
+
+      // Compose angle label text (2 decimals)
+      const angleValue = data.cachedStats?.[targetId]?.angle;
+      const angleText = angleValue !== null && angleValue !== undefined ? angleValue.toFixed(2) + "°" : "";
+
+      const customTextBoxLabel = metadata.tagName || `Angle: ${angleText}`;
+
+      const options = this.getLinkedTextBoxStyle(styleSpecifier, annotation as Annotation);
+
+      drawLinkedTextBox_default(
+        svgDrawingHelper,
+        annotationUID,
+        textBoxLabelUID,
+        [customTextBoxLabel],
+        customTextBoxPositionLabel,
+        canvasCoordinates,
+        options
+      );
+
+      metadata.measurementValues = [
+        { name: "angle", value: angleValue, unit: (this.getToolName() as csjsTools) || "deg" },
+      ];
+    }
+
+    // Draw second label text box near point 3 if available
+    if (
+      !this.editData?.newAnnotation && // not currently drawing this annotation
+      data.handles?.points.length === 4
+    ) {
+      if (!data.label) {
+        data.label = currentcustomLabel.value?.trim() || "No label";
+      }
+
+      if (data.label && data.label !== "No label") {
+        const labelBoxPosition = viewport.worldToCanvas(data.handles.points[2] as Point3);
+
+        drawLinkedTextBox_default(
+          svgDrawingHelper,
+          annotationUID,
+          "labelTextBox",
+          [data.label],
+          labelBoxPosition,
+          canvasCoordinates,
+          {},
+        Option,
+        );
+      }
+    }
+  }
+
+  return renderStatus;
+}
+
 
     protected returnAnnotationStatus(annotations: CobbAngleAnnotation[] | undefined, renderStatus: boolean): boolean | undefined {
-        if (!annotations?.length) {
-            return renderStatus;
-        }
+    if (!annotations?.length) {
+        return renderStatus;
     }
+}
 
     override renderAnnotation = (enabledElement: Types.IEnabledElement, svgDrawingHelper: SVGDrawingHelper): boolean => {
-        const { viewport } = enabledElement;
-        const { element } = viewport;
-        let annotations = getAnnotations(this.getToolName(), element) as CobbAngleAnnotation[];
-        let renderStatus = false;
-        this.returnAnnotationStatus(annotations, renderStatus);
-        annotations = this.filterInteractableAnnotationsForElement(element, annotations as Annotations) as CobbAngleAnnotation[];
-        this.returnAnnotationStatus(annotations, renderStatus);
-        const targetId = this.getTargetId(viewport);
-        const renderingEngine = viewport.getRenderingEngine();
-        const styleSpecifier: StyleSpecifier = {
-            toolGroupId: this.toolGroupId,
-            toolName: this.getToolName(),
-            viewportId: enabledElement.viewport.id,
-            annotationUID: ''
-        };
-        let renderAllAnnotationsParams = { viewport, renderStatus};
-        return this.renderAllAnnotations(annotations, targetId as string, renderingEngine, styleSpecifier, enabledElement, svgDrawingHelper, renderAllAnnotationsParams);
-    }
+    const { viewport } = enabledElement;
+    const { element } = viewport;
+    let annotations = getAnnotations(this.getToolName(), element) as CobbAngleAnnotation[];
+    let renderStatus = false;
+    this.returnAnnotationStatus(annotations, renderStatus);
+    annotations = this.filterInteractableAnnotationsForElement(element, annotations as Annotations) as CobbAngleAnnotation[];
+    this.returnAnnotationStatus(annotations, renderStatus);
+    const targetId = this.getTargetId(viewport);
+    const renderingEngine = viewport.getRenderingEngine();
+    const styleSpecifier: StyleSpecifier = {
+        toolGroupId: this.toolGroupId,
+        toolName: this.getToolName(),
+        viewportId: enabledElement.viewport.id,
+        annotationUID: ''
+    };
+    let renderAllAnnotationsParams = { viewport, renderStatus };
+    return this.renderAllAnnotations(annotations, targetId as string, renderingEngine, styleSpecifier, enabledElement, svgDrawingHelper, renderAllAnnotationsParams);
+}
 }

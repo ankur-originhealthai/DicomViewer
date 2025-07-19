@@ -11,6 +11,7 @@ import type{ Annotation } from '@cornerstonejs/tools/types/AnnotationTypes';
 import getArea from "@cornerstonejs/tools/utilities/math/polyline/getArea";
 import type { PlanarBoundingBox } from "@cornerstonejs/tools/types";
 import getTextBoxCoordsCanvas from "@cornerstonejs/tools/utilities/drawing/getTextBoxCoordsCanvas";
+import { currentcustomLabel } from "~/components/labelState";
 //import { useToolStore } from "@/store/use-tool-store";
 //const { isEraserToolActive } = useToolStore.getState();
 export class customellipse extends EllipticalROITool {
@@ -174,7 +175,36 @@ export class customellipse extends EllipticalROITool {
             const customTextBoxPosition = viewport.worldToCanvas(data.handles?.points?.[2] ?? [0, 0, 0]);
             const dataArea = 'Area:' + (label) + data.cachedStats[targetId]?.areaUnit
             // Only draw the tag name box
-            const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID, '2', [dataArea ], customTextBoxPosition, canvasCoordinates, options);
+            
+            const boundingBox = drawLinkedTextBox_default(svgDrawingHelper, annotationUID, '1', [dataArea ], customTextBoxPosition, canvasCoordinates, options);
+            
+            const isDrawingThis =
+                this.editData?.annotation?.annotationUID === annotationUID &&
+                this.editData?.newAnnotation === true;
+            
+              if (!isDrawingThis && data.handles?.points.length === 4) {
+                const labelBoxPosition = viewport.worldToCanvas(data.handles.points[0] as Point3);
+            
+                // Assign label once
+                if (!data.label) {
+                  data.label = currentcustomLabel.value?.trim() || 'No label';
+                }
+            
+                if (data.label && data.label !== 'No label') {
+                  drawLinkedTextBox_default(
+                    svgDrawingHelper,
+                    annotationUID,
+                    '2',
+                    [data.label],
+                    labelBoxPosition,
+                    canvasCoordinates,
+                    {},
+                    options
+                  );
+                }
+              }
+            
+            
             if (boundingBox && data.handles?.textBox) {
                 data.handles.textBox.worldBoundingBox = this._getWorldBoundingBox(viewport, boundingBox);
             }

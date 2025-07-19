@@ -27,7 +27,10 @@ import type { Annotation } from "@cornerstonejs/tools/types/AnnotationTypes";
 import getTextBoxCoordsCanvas from "@cornerstonejs/tools/utilities/drawing/getTextBoxCoordsCanvas";
 import type { InteractionEventType } from "@cornerstonejs/tools/types/EventTypes";
 import { isAnnotationLocked } from "@cornerstonejs/tools/annotation/annotationLocking";
+import { currentcustomLabel } from '~/components/labelState'
 
+// Read value:
+console.log(currentcustomLabel.value)
 export class custombidirectional extends BidirectionalTool {
   constructor(
     toolProps = {},
@@ -210,7 +213,7 @@ export class custombidirectional extends BidirectionalTool {
         options
       );
       
-      const customTextBoxPositionLabel2 = viewport.worldToCanvas(data.handles?.points[3] as Point3);
+      //const customTextBoxPositionLabel2 = viewport.worldToCanvas(data.handles?.points[3] as Point3);
 
        // Show second textbox only after drawing is completed
 const isDrawingThis =
@@ -218,11 +221,23 @@ const isDrawingThis =
   this.editData?.newAnnotation === true;
 
 if (!isDrawingThis && points.length === 4) {
-  const customTextBoxPositionLabel2 = viewport.worldToCanvas(data.handles?.points[3] as Point3);
- data.label = "abche";
-  const textLines2 = [
-    `abcheek`
-  ];
+  const customTextBoxPositionLabel2 = viewport.worldToCanvas(
+    data.handles?.points[3] as Point3
+  );
+
+  // Only assign label if not already set
+  if (!data.label) {
+    if(currentcustomLabel.value === ''){
+      data.label= "No label"
+    }
+    else{
+      data.label = currentcustomLabel.value;
+    }
+    //data.label = currentcustomLabel.value;
+    
+  }
+  if(data.label != 'No label'){
+    const textLines2 = [data.label];
 
   drawLinkedTextBox_default(
     svgDrawingHelper,
@@ -234,7 +249,10 @@ if (!isDrawingThis && points.length === 4) {
     {},
     options
   );
+  }
+  
 }
+
 
       const { x: left, y: top, width, height } = boundingBox;
       //const { x: left, y: top, width, height } = boundingBox2;
