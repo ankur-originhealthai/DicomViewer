@@ -8,7 +8,7 @@ import getContourHolesDataCanvas from "@cornerstonejs/tools/utilities/contours/g
 import { addAnnotation } from "@cornerstonejs/tools/annotation/annotationState";
 import type { PlanarBoundingBox, SVGDrawingHelper } from "@cornerstonejs/tools/types";
 import type { IEnabledElement, IImageData, IStackViewport, IVolumeViewport, Point2, Point3 } from "@cornerstonejs/core/types";
-import type { TextBoundingBox } from "./types/CSJSTools";
+import type { TextBoundingBox } from "../types/CSJSTools";
 import type { PlanarFreehandROIAnnotation, SplineROIAnnotation } from "@cornerstonejs/tools/types/ToolSpecificAnnotationTypes";
 import { vec2 } from 'gl-matrix';
 

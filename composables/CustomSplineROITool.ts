@@ -4,14 +4,14 @@ import { getAnnotation, getChildAnnotations } from "@cornerstonejs/tools/annotat
 import { drawPolyline, _getSplineConfig, drawHandles_defaultPlus, drawHandles_default, _updateSplineInstance, _renderStats, drawLinkedTextBox_default } from './CustomLibrary';
 
 
-import { csjsTools } from "./types/CSJSTools";
+import { csjsTools } from "../types/CSJSTools";
 import { triggerAnnotationRenderForViewportIds } from "@cornerstonejs/tools/utilities";
 import { _calculateCachedStats, ContourSegmentRenderAnnotationInstance } from './CustomLibrary';
 
 import type { MouseClickEventType, TouchTapEventType, MouseDragEventType, InteractionEventType } from "@cornerstonejs/tools/types/EventTypes";
 import type { IImageData, Point2, Point3 } from "@cornerstonejs/core/types";
 
-import type { Handles, AnnotationData, ExtendedMetadata, EditData, CachedStats } from "./types/tools-type";
+import type { Handles, AnnotationData, ExtendedMetadata, EditData, CachedStats } from "../types/tools-type";
 import type { AnnotationRenderContext, Annotation } from "@cornerstonejs/tools/types";
 import { ChangeTypes } from "@cornerstonejs/tools/enums";
 import { currentcustomLabel } from "~/components/labelState";

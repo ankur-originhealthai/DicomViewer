@@ -11,7 +11,7 @@ import type { LengthAnnotation } from '@cornerstonejs/tools/types/ToolSpecificAn
 import { getAnnotation } from '@cornerstonejs/tools/annotation/annotationState';
 
 
-import type { ExtendedMetadata, AnnotationData, StyleSpecifier, Handles, DragEventDetail, EditData } from '~/customs/types/tools-type';
+import type { ExtendedMetadata, AnnotationData, StyleSpecifier, Handles, DragEventDetail, EditData } from '~/types/tools-type';
 import type { MouseDragEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { InteractionEventType } from '@cornerstonejs/tools/types/EventTypes';
 import { currentcustomLabel } from '~/components/labelState';

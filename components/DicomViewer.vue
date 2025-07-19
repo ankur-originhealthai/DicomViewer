@@ -28,20 +28,20 @@ import {
 
 } from "@cornerstonejs/tools";
 import hardcodedMetaDataProvider from "../utils/hardcodedMetaDataProvider";
-import { useLabelTool } from '~/customs/useLabelTool'
-import { useMagnifier } from '~/customs/useMagnifier'
+import { useLabelTool } from '~/composables/useLabelTool'
+import { useMagnifier } from '~/composables/useMagnifier'
 import ViewportOverlay from '~/components/ViewportOverlay.vue'
 import LabelInputOverlay from '~/components/LabelInputOverlay.vue'
 import { captureDicom } from "./CaptureDicom.vue";
 import { init as dicomLoaderInit, wadouri } from "@cornerstonejs/dicom-image-loader";
-import { useLabelToolDrag } from "~/customs/useLabelToolDrag";
-import { CustomLengthTool } from "~/customs/CustomLengthTool";
-import { customangletool } from "~/customs/CustomAngleTool";
-import { customellipse } from "~/customs/CustomEllipseTool";
-import { CustomSplineROITool } from "~/customs/CustomSplineROITool";
-import { customCobbAngleTool } from "~/customs/CustomCobbAngleTool"
-import { custombidirectional } from "~/customs/CustomBiDirectionalTool"
-import type { undotype, redotype } from "~/customs/types/undo-redo";
+import { useLabelToolDrag } from "~/composables/useLabelToolDrag";
+import { CustomLengthTool } from "~/composables/CustomLengthTool";
+import { customangletool } from "~/composables/CustomAngleTool";
+import { customellipse } from "~/composables/CustomEllipseTool";
+import { CustomSplineROITool } from "~/composables/CustomSplineROITool";
+import { customCobbAngleTool } from "~/composables/CustomCobbAngleTool"
+import { custombidirectional } from "~/composables/CustomBiDirectionalTool"
+import type { undotype, redotype } from "~/types/undo-redo";
 import { currentcustomLabel } from '~/components/labelState'
 
 

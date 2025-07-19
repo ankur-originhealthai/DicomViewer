@@ -8,11 +8,11 @@ import { drawHandles_default, drawHandles_defaultPlus, drawLinkedTextBox_default
 import { Events } from '@cornerstonejs/tools/enums';
 import type { Types } from '@cornerstonejs/core';
 import { triggerAnnotationRenderForViewportIds } from '@cornerstonejs/tools/utilities';
-import { toolsAcronyms, csjsTools } from './types/CSJSTools';
+import { toolsAcronyms, csjsTools } from '../types/CSJSTools';
 
 import type { Point3, Point2 } from '@cornerstonejs/core/types';
 
-import type { AnnotationData, StyleSpecifier, EditData, CobbAngleAnnotation, Handles } from './types/tools-type';
+import type { AnnotationData, StyleSpecifier, EditData, CobbAngleAnnotation, Handles } from '../types/tools-type';
 import type { MouseDragEventType, MouseMoveEventType, MouseClickEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { Annotation, Annotations } from '@cornerstonejs/tools/types/AnnotationTypes';
 import { currentcustomLabel } from '~/components/labelState';

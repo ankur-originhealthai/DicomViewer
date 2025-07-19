@@ -6,7 +6,7 @@ import getCanvasEllipseCorners from "@cornerstonejs/tools/utilities/math/ellipse
 import { VolumeViewport, type Types } from '@cornerstonejs/core';
 import type{  Point2, Point3 } from "@cornerstonejs/core/types";
 import { drawHandles_defaultPlus, drawEllipseSvg_default, drawHandles_default, drawCircle_default, drawLinkedTextBox_default } from './CustomLibrary';
-import { type ExtendedMetadata, type AnnotationData, type StyleSpecifier } from './types/tools-type';
+import { type ExtendedMetadata, type AnnotationData, type StyleSpecifier } from '../types/tools-type';
 import type{ Annotation } from '@cornerstonejs/tools/types/AnnotationTypes';
 import getArea from "@cornerstonejs/tools/utilities/math/polyline/getArea";
 import type { PlanarBoundingBox } from "@cornerstonejs/tools/types";

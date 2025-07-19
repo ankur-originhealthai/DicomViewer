@@ -22,7 +22,7 @@ import {
   type ExtendedMetadata,
   type AnnotationData,
   type StyleSpecifier,
-} from "./types/tools-type";
+} from "../types/tools-type";
 import type { Annotation } from "@cornerstonejs/tools/types/AnnotationTypes";
 import getTextBoxCoordsCanvas from "@cornerstonejs/tools/utilities/drawing/getTextBoxCoordsCanvas";
 import type { InteractionEventType } from "@cornerstonejs/tools/types/EventTypes";
