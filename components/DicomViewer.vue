@@ -131,10 +131,10 @@ watch(currentFile, async () => {
         await cornerstoneToolsInit();
         await dicomLoaderInit();
 
-        metaData.addProvider(
-            (type, imageId) => hardcodedMetaDataProvider(type, imageId, imageId),
-            10000
-        );
+        // metaData.addProvider(
+        //     (type, imageId) => hardcodedMetaDataProvider(type, imageId, imageId),
+        //     10000
+        // );
         const element = elementRef.value;
         if (!element || !currentFile.value) return;
 
@@ -173,18 +173,19 @@ watch(currentFile, async () => {
             await viewport.setStack([baseImageId]);
         }
         viewport.setImageIdIndex(0);
-        metaData.addProvider((type, baseImageId) => {
-            if (type === 'imagePlaneModule') {
-                return {
-                    rowPixelSpacing: 1,
-                    columnPixelSpacing: 1,
-                    imagePositionPatient: [0, 0, 0],
-                    rowCosines: [1, 0, 0],
-                    columnCosines: [0, 1, 0],
-                };
-            }
-        }, 99);
+        // metaData.addProvider((type, baseImageId) => {
+        //     if (type === 'imagePlaneModule') {
+        //         return {
+        //             rowPixelSpacing: 1,
+        //             columnPixelSpacing: 1,
+        //             imagePositionPatient: [0, 0, 0],
+        //             rowCosines: [1, 0, 0],
+        //             columnCosines: [0, 1, 0],
+        //         };
+        //     }
+        // }, 99);
         viewport.render();
+
         const toolgrp = ToolGroupManager.getToolGroup(toolGroupId);
         if (toolgrp) {
             ToolGroupManager.destroyToolGroup(toolGroupId)

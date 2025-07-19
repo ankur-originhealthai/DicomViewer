@@ -178,6 +178,10 @@
           <Icon name="mdi:spline" class="w-2 h-4" />
          BiDirectional
         </button>
+         <button @click="() => handleToolChange('Label')" class="tool-btn">
+          <Icon name="mdi:spline" class="w-2 h-4" />
+         Label
+        </button>
 
         
       </div>

@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted, watch } from "vue";
+import { ref, watch } from "vue";
 import type { Ref } from "vue";
 
 import {
@@ -7,6 +7,7 @@ import {
   ToolGroupManager,
   Enums as csToolsEnums,
 } from "@cornerstonejs/tools";
+
 import type { StackViewport } from "@cornerstonejs/core";
 
 export function useLabelTool(
@@ -24,18 +25,11 @@ export function useLabelTool(
   const prevToolRef = ref<string | null>(null);
 
   const handler = (event: MouseEvent) => {
-    
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
     const viewport = renderingEngineRef.value?.getViewport(
       viewportId
     ) as StackViewport;
     if (!viewport || !toolGroup) return;
-
-    //const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
-    // const activeTool = toolGroup?.getCurrentActivePrimaryToolName()
-    // if(activeTool === 'SplineROI'){
-    //   return
-    // }
 
     if (isMagnifyVisible.value) {
       isMagnifyVisible.value = false;
@@ -77,29 +71,38 @@ export function useLabelTool(
     const imageId = currentImageIdRef.value;
     const viewport = renderingEngineRef.value?.getViewport(viewportId);
     const toolGroup = ToolGroupManager.getToolGroup(toolGroupId);
+
     if (
       !labelInputValue.value ||
       !imageId ||
       !worldPos ||
       !viewport ||
       !toolGroup
-    )
+    ) {
       return;
+    }
+
+    const { viewPlaneNormal, viewUp } = viewport.getCamera();
+
+    const normal = [viewPlaneNormal[0], viewPlaneNormal[1], viewPlaneNormal[2]] as [number, number, number];
+    const up = [viewUp[0], viewUp[1], viewUp[2]] as [number, number, number];
 
     annotation.state.addAnnotation(
       {
         metadata: {
           toolName: LabelTool.toolName,
-          viewPlaneNormal: viewport.getCamera().viewPlaneNormal,
-          viewUp: viewport.getCamera().viewUp,
+          viewPlaneNormal: normal,
+          viewUp: up,
           referencedImageId: imageId,
+          FrameOfReferenceUID: viewport.getFrameOfReferenceUID?.(),
         },
         data: {
           text: labelInputValue.value,
           handles: {
-            points: [worldPos as any],
+            points: [worldPos as [number, number, number]],
             activeHandleIndex: null,
           },
+          label: labelInputValue.value
         },
         highlighted: true,
         invalidated: false,
@@ -113,15 +116,17 @@ export function useLabelTool(
     toolGroup.setToolActive(LabelTool.toolName, {
       bindings: [{ mouseButton: csToolsEnums.MouseBindings.Primary }],
     });
-
     toolGroup.setToolPassive("Label");
+
     const container = cornerstoneElement.value;
-    if (container) container.style.cursor = "auto";
+    if (container) {
+      container.style.cursor = "auto";
+    }
 
     viewport.render();
+
     labelInputVisible.value = false;
     labelInputValue.value = "";
-    //prevToolRef.value = null;
   };
 
   const onLabelCancel = () => {

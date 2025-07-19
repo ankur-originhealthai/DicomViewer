@@ -209,7 +209,35 @@ export class custombidirectional extends BidirectionalTool {
         {},
         options
       );
+      
+      const customTextBoxPositionLabel2 = viewport.worldToCanvas(data.handles?.points[3] as Point3);
+
+       // Show second textbox only after drawing is completed
+const isDrawingThis =
+  this.editData?.annotation?.annotationUID === annotationUID &&
+  this.editData?.newAnnotation === true;
+
+if (!isDrawingThis && points.length === 4) {
+  const customTextBoxPositionLabel2 = viewport.worldToCanvas(data.handles?.points[3] as Point3);
+ data.label = "abche";
+  const textLines2 = [
+    `abcheek`
+  ];
+
+  drawLinkedTextBox_default(
+    svgDrawingHelper,
+    annotationUID,
+    '2',
+    textLines2,
+    customTextBoxPositionLabel2,
+    canvasCoordinates,
+    {},
+    options
+  );
+}
+
       const { x: left, y: top, width, height } = boundingBox;
+      //const { x: left, y: top, width, height } = boundingBox2;
       data.handles.textBox.worldBoundingBox = {
         topLeft: viewport.canvasToWorld([left, top]),
         topRight: viewport.canvasToWorld([left + width, top]),
