@@ -27,7 +27,7 @@ import type { Annotation } from "@cornerstonejs/tools/types/AnnotationTypes";
 import getTextBoxCoordsCanvas from "@cornerstonejs/tools/utilities/drawing/getTextBoxCoordsCanvas";
 import type { InteractionEventType } from "@cornerstonejs/tools/types/EventTypes";
 import { isAnnotationLocked } from "@cornerstonejs/tools/annotation/annotationLocking";
-import { currentcustomLabel } from '~/components/labelState'
+import { currentcustomLabel } from '~/composables/labelState'
 
 // Read value:
 console.log(currentcustomLabel.value)

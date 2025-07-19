@@ -14,7 +14,7 @@ import { getAnnotation } from '@cornerstonejs/tools/annotation/annotationState';
 import type { ExtendedMetadata, AnnotationData, StyleSpecifier, Handles, DragEventDetail, EditData } from '~/types/tools-type';
 import type { MouseDragEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { InteractionEventType } from '@cornerstonejs/tools/types/EventTypes';
-import { currentcustomLabel } from '~/components/labelState';
+import { currentcustomLabel } from '~/composables/labelState';
 
 const getAnnotations = annotationTools.state.getAnnotations;
 const isAnnotationVisible = annotationTools.visibility.isAnnotationVisible;

@@ -42,7 +42,7 @@ import { CustomSplineROITool } from "~/composables/CustomSplineROITool";
 import { customCobbAngleTool } from "~/composables/CustomCobbAngleTool"
 import { custombidirectional } from "~/composables/CustomBiDirectionalTool"
 import type { undotype, redotype } from "~/types/undo-redo";
-import { currentcustomLabel } from '~/components/labelState';
+import { currentcustomLabel } from '~/composables/labelState';
 
 const renderingEngineId = "myRenderingEngine";
 const viewportId = "myViewport";

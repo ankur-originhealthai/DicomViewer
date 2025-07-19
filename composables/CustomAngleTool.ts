@@ -11,7 +11,7 @@ import type { SVGDrawingHelper } from "@cornerstonejs/tools/types";
 import type { PlanarBoundingBox } from "@cornerstonejs/tools/types";
 import { csjsTools } from '../types/CSJSTools';
 import type { ExtendedMetadata, CachedStats, AnnotationData, StyleSpecifier } from '../types/tools-type';
-import { currentcustomLabel } from "~/components/labelState";
+import { currentcustomLabel } from "~/composables/labelState";
 
 
 export class customangletool extends AngleTool {

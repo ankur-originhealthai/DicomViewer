@@ -14,7 +14,7 @@ import type { IImageData, Point2, Point3 } from "@cornerstonejs/core/types";
 import type { Handles, AnnotationData, ExtendedMetadata, EditData, CachedStats } from "../types/tools-type";
 import type { AnnotationRenderContext, Annotation } from "@cornerstonejs/tools/types";
 import { ChangeTypes } from "@cornerstonejs/tools/enums";
-import { currentcustomLabel } from "~/components/labelState";
+import { currentcustomLabel } from "~/composables/labelState";
 
 
 const TOUCH_TO_FINISH_DELAY = 200;

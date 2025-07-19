@@ -11,7 +11,7 @@ import type{ Annotation } from '@cornerstonejs/tools/types/AnnotationTypes';
 import getArea from "@cornerstonejs/tools/utilities/math/polyline/getArea";
 import type { PlanarBoundingBox } from "@cornerstonejs/tools/types";
 import getTextBoxCoordsCanvas from "@cornerstonejs/tools/utilities/drawing/getTextBoxCoordsCanvas";
-import { currentcustomLabel } from "~/components/labelState";
+import { currentcustomLabel } from "~/composables/labelState";
 //import { useToolStore } from "@/store/use-tool-store";
 //const { isEraserToolActive } = useToolStore.getState();
 export class customellipse extends EllipticalROITool {

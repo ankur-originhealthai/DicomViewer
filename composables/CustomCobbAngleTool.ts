@@ -15,7 +15,7 @@ import type { Point3, Point2 } from '@cornerstonejs/core/types';
 import type { AnnotationData, StyleSpecifier, EditData, CobbAngleAnnotation, Handles } from '../types/tools-type';
 import type { MouseDragEventType, MouseMoveEventType, MouseClickEventType } from '@cornerstonejs/tools/types/EventTypes';
 import type { Annotation, Annotations } from '@cornerstonejs/tools/types/AnnotationTypes';
-import { currentcustomLabel } from '~/components/labelState';
+import { currentcustomLabel } from '~/composables/labelState';
 
 //const { setActivateDraw, isEraserToolActive, activeTool } = useToolStore.getState();
 let imageId: string = '';
